@@ -110,7 +110,7 @@ function closeModal(){$("overlay").classList.add("hidden")}
 function openResultSkins(){closeModal();resultReturn=()=>{show("play");if(game&&game.cleared){if(game.monsters.some(m=>m.alive&&m.row>=ROWS))showGameOverResult();else showClearResult()}};show("skins")}
 function showGameOverResult(){const g=game;if(!g)return;if(g.custom){modal("ゲームオーバー","<p>自作ステージにもう一度挑戦できます。</p>",[["もう一度",()=>startCustomStage()],["編集に戻る",()=>{closeModal();show("custom")}]]);return;} modal("ゲームオーバー","<p>モンスターが最下段を越えました！</p><p>このステージの最初から再挑戦できます。</p>",[["もう一度挑戦",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}]])}
 
-function newData(){return{playerName:"",nameChangedAt:0,unlocked:1,stars:Array(50).fill(0),skin:0,tutorial:false,checkpoint:1,coins:0,gems:0,dailyClaimed:"",coinClaimed:Array(50).fill(false),coinSkins:[],activeCoinSkin:-1,gemSkins:[],activeGemSkin:-1,versusRankPoints:0}}
+function newData(){return{playerName:"",nameChangedAt:0,unlocked:1,stars:Array(50).fill(0),skin:0,tutorial:false,checkpoint:1,coins:0,gems:0,dailyClaimed:"",coinClaimed:Array(50).fill(false),coinSkins:[],activeCoinSkin:-1,gemSkins:[],activeGemSkin:-1,versusRankPoints:0,versusHighestRewardedRank:0}}
 function data(){return store.slots[slot]}
 function playerName(saved,i=slot){return typeof saved?.playerName==="string"&&saved.playerName.trim()?saved.playerName.trim():`データ ${i+1}`}
 function nextNameChangeDate(saved){
@@ -424,13 +424,36 @@ function awardVersusMatchCoins(matchKey,won){
   const before=versusRankInfo();
   data().versusRankPoints=Math.max(0,before.points+(won?10:-10));
   const after=versusRankInfo();
+  // 各称号への初回昇格時だけ1000コイン。降格しても回収せず、再昇格では再付与しない。
+  const beforeRank=VERSUS_RANKS.findIndex(r=>r.name===before.name);
+  const afterRank=VERSUS_RANKS.findIndex(r=>r.name===after.name);
+  // 旧セーブには記録がないため、更新前の称号まで受領済みとみなして二重配布を防ぐ。
+  const oldHighest=data().versusHighestRewardedRank===undefined?beforeRank:Math.max(0,Math.min(VERSUS_RANKS.length-1,Math.floor(Number(data().versusHighestRewardedRank)||0)));
+  const firstRankUp=afterRank>beforeRank&&afterRank>oldHighest;
+  if(firstRankUp)data().coins+=1000;
+  data().versusHighestRewardedRank=Math.max(oldHighest,afterRank);
   persist();updateVersusRankDisplay();void syncNationalRanking();
-  toast((won?"🏆 対決勝利！ +150コイン / +10pt":"対決終了！ +50コイン / -10pt")+(before.name!==after.name?` 称号変更：${after.name}`:""));return true;
+  toast((won?"🏆 対決勝利！ +150コイン / +10pt":"対決終了！ +50コイン / -10pt")+(firstRankUp?` 🎉 初昇格：${after.name}！ ボーナス+1000コイン`:before.name!==after.name?` 称号変更：${after.name}`:""));return true;
  }catch(e){console.warn("対決報酬を保存できませんでした",e);return false}
 }
-function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);onlineRoomData=value;if(value)setVersusMaze(onlineRoom,value.round);if(!value){onlineStatus("ルームが見つかりません");return}const ids=[row.player1_id,row.player2_id].filter(Boolean);onlineSeat=ids.indexOf(onlineUid);if(onlineSeat<0){onlineStatus("このルームの参加者ではありません");return}
+function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);onlineRoomData=value;if(value)setVersusMaze(onlineRoom,value.round);if(!value){
+  // サーバーで削除されたルームから自動退出する。
+  const ended=onlineFinishAcknowledged.has(onlineRoom);
+  const oldRoom=onlineRoom;
+  onlineRoom=null;onlineRoomData=null;onlineSeat=-1;onlineReady=false;onlineDirection=null;onlineStartAt=0;
+  $("onlineRoomNumber").value="";clearVersusMaze();
+  if(onlineUnsub){onlineUnsub();onlineUnsub=null}
+  if(screen==="versus"||screen==="versusChoose"||screen==="versusDirection")show("online");
+  onlineStatus(ended?"対戦終了：ルームを自動削除しました":"相手が退出したため、ルームが閉じられました");return}const ids=[row.player1_id,row.player2_id].filter(Boolean);onlineSeat=ids.indexOf(onlineUid);if(onlineSeat<0){onlineStatus("このルームの参加者ではありません");return}
  onlineReady=value.players[onlineUid]?.ready===true;onlineDirection=value.players[onlineUid]?.direction||null;
- if(value.roundResult){if(value.champion!=null&&onlineUid)awardVersusMatchCoins("online_"+onlineRoom+"_"+onlineUid,value.champion===onlineSeat);if(value.champion!=null)$("onlineRoomNumber").value="";onlineStartAt=value.startAt||0;updateVersusScore();const winner=value.roundResult.winner;$("versusCountdown").textContent=value.champion!=null?`🏆 プレイヤー${value.champion+1}が3点！ 最終勝利！`:winner===-1?`第${value.round}ラウンド：引き分け！ 両者0点`:`第${value.round}ラウンド：プレイヤー${winner+1}の勝ち！`;
+ if(value.roundResult){if(value.champion!=null&&onlineUid)awardVersusMatchCoins("online_"+onlineRoom+"_"+onlineUid,value.champion===onlineSeat);if(value.champion!=null){$("onlineRoomNumber").value="";
+   // 両者が最終結果を受信したらサーバー上のルームを削除する。
+   if(!onlineFinishAcknowledged.has(onlineRoom)){
+    onlineFinishAcknowledged.add(onlineRoom);
+    const finishedRoom=onlineRoom;
+    void onlineRpc("cleanup_battle_room",{p_room_code:finishedRoom,p_action:"finish"}).catch(e=>console.warn("終了ルームの削除待ち:",e));
+   }
+  }onlineStartAt=value.startAt||0;updateVersusScore();const winner=value.roundResult.winner;$("versusCountdown").textContent=value.champion!=null?`🏆 プレイヤー${value.champion+1}が3点！ 最終勝利！`:winner===-1?`第${value.round}ラウンド：引き分け！ 両者0点`:`第${value.round}ラウンド：プレイヤー${winner+1}の勝ち！`;
  $("versusReselect").disabled=value.champion!=null||!!value.players[onlineUid]?.nextReady;$("versusReselect").textContent=value.champion!=null?"試合終了":value.players[onlineUid]?.nextReady?"相手の『次へ』を待っています…":"次のラウンドへ";if(screen!=="versus")show("versus");return}
  if(!value.startAt){onlineStartAt=0;versusMotionKey="";versusRoundResult=null;$("versusReselect").disabled=true}
  const bothBalls=ids.length===2&&ids.every(id=>value.players[id]?.ready===true);
@@ -440,17 +463,20 @@ function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);
  if(ids.length===2){if(screen!=="versusChoose")show("versusChoose");renderVersusChoices();if(onlineReady)$("versusChooseInfo").textContent="決定しました。相手を待っています…";}else if(screen==="versus"||screen==="versusDirection"||screen==="versusChoose")show("online");
  onlineStatus(ids.length===1?"参加しました。相手を待っています…":onlineReady?"ボール決定済み。相手を待っています…":"2人が接続しました。ボールを選んでください！");$("onlineChoose").classList.toggle("hidden",ids.length!==2||onlineReady);
 }
+const onlineFinishAcknowledged=new Set();
 async function refreshOnlineRoom(){const room=onlineRoom;if(!room||!onlineDb)return;try{const {data,error}=await onlineDb.from("battle_rooms").select("room_code,player1_id,player2_id,game_state").eq("room_code",room).maybeSingle();if(room!==onlineRoom)return;if(error)throw error;renderOnlineRoom(data)}catch(e){if(room!==onlineRoom)return;onlineStatus("同期エラー: "+e.message);console.error("Supabaseルーム同期失敗",e)}}
 async function onlineConnect(){const room=$("onlineRoomNumber").value.trim();if(!/^\d{6}$/.test(room)){onlineStatus("6桁の数字を入力してください");return}$("onlineJoin").disabled=true;onlineStatus("Supabaseに接続中…");try{await loadSupabaseSdk();if(!onlineDb)onlineDb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});let {data:{user}}=await onlineDb.auth.getUser();if(!user){const {data,error}=await onlineDb.auth.signInAnonymously();if(error)throw error;user=data.user}onlineUid=user.id;
  let {data:mine}=await onlineDb.from("battle_rooms").select("room_code").eq("room_code",room).maybeSingle();if(!mine){const {error}=await onlineDb.from("battle_rooms").insert({room_code:room,player1_id:onlineUid});if(error&&error.code!=="23505")throw error}
  await onlineRpc("join_battle_room",{p_room_code:room});
  const {data:row,error}=await onlineDb.from("battle_rooms").select("room_code,player1_id,player2_id,game_state").eq("room_code",room).maybeSingle();if(error)throw error;const priorState=parseRoom(row);if(priorState&&(priorState.champion!==null||priorState.roundResult!==null)){onlineStatus("このルームの対戦は終了しています。『新しいルームを作成』を押してください。");return}if(!row||![row.player1_id,row.player2_id].includes(onlineUid)){onlineStatus("満員か、参加できないルームです。別の番号を試してください");return}
- if(onlineUnsub)onlineUnsub();onlineRoom=room;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;$("versusCountdown").textContent="";resetVersusChoices();
+ onlineFinishAcknowledged.delete(room);if(onlineUnsub)onlineUnsub();onlineRoom=room;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;$("versusCountdown").textContent="";resetVersusChoices();
  const channel=onlineDb.channel("battle-"+room).on("postgres_changes",{event:"*",schema:"public",table:"battle_rooms",filter:"room_code=eq."+room},()=>refreshOnlineRoom()).subscribe();
  const timer=setInterval(()=>{if(onlineRoom===room)refreshOnlineRoom();else clearInterval(timer)},1500);
  onlineUnsub=()=>{clearInterval(timer);onlineDb.removeChannel(channel)};renderOnlineRoom(row);
  }catch(err){onlineStatus("接続エラー: "+err.message)}finally{$("onlineJoin").disabled=false}}
-async function onlineLeave(){clearVersusMaze();$("onlineRoomNumber").value="";const room=onlineRoom;onlineRoom=null;onlineRoomData=null;onlineSeat=-1;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;versusMotionKey="";if(onlineUnsub){onlineUnsub();onlineUnsub=null}$("onlineChoose").classList.add("hidden");onlineStatus("退出しました");if(room&&onlineDb){try{await onlineRpc("battle_action",{p_room_code:room,p_action:"leave",p_payload:{}})}catch(e){console.warn("退出通知を保存できませんでした",e);if(!onlineRoom)onlineStatus("画面から退出しました（サーバーへの退出通知に失敗: "+e.message+"）")}}}
+async function onlineLeave(){clearVersusMaze();$("onlineRoomNumber").value="";const room=onlineRoom;onlineRoom=null;onlineRoomData=null;onlineSeat=-1;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;versusMotionKey="";if(onlineUnsub){onlineUnsub();onlineUnsub=null}$("onlineChoose").classList.add("hidden");onlineStatus("退出しました");if(room&&onlineDb){try{await onlineRpc("battle_action",{p_room_code:room,p_action:"leave",p_payload:{}})}catch(e){console.warn("退出通知を保存できませんでした",e);if(!onlineRoom)onlineStatus("画面から退出しました（サーバーへの退出通知に失敗: "+e.message+"）")}
+ try{await onlineRpc("cleanup_battle_room",{p_room_code:room,p_action:"leave"})}catch(e){console.warn("ルーム自動削除に失敗",e)}
+ }}
 function resetVersusChoices(){versusSelected[0]=-1;versusSelected[1]=-1;}
 function drawVersusAim(){
  const c=$("versusAimBoard");if(!c)return;const ctx=c.getContext("2d");
