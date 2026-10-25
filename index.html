@@ -1198,6 +1198,10 @@ function halfLine(block){
   other.hp-=Math.ceil(other.hp/2);
   if(other.hp<=0)destroy(other);
  }
+ // 破壊された位置から、同じ行／列の両端へビームを放つ。
+ game.lineBeams??=[];
+ game.lineBeams.push({x:X0+(block.c+.5)*CW,y:Y0+(block.row+.5)*CH,
+  horizontal,life:.48,maxLife:.48,color:horizontal?"#ffe878":"#86fff3"});
  burst(X0+(block.c+.5)*CW,Y0+(block.row+.5)*CH,horizontal?"#ffe878":"#a6fffb");
 }
 function destroy(block){if(!block.alive||block.type==="iron")return;block.alive=false;if(block.type==="coin"&&!game.mini){data().coins+=50;persist();toast("コインブロック！ +50コイン")}if(block.type==="bomb")playBombExplosionSound();else playBlockBreakSound();if(block.type==="rowHalf"||block.type==="colHalf")halfLine(block);burst(X0+(block.c+.5)*CW,Y0+(block.row+.5)*CH,block.type==="bomb"?"#ffb15a":"#5edbff");if(block.type==="bomb"){for(const m of game.monsters){if(!m.alive||Math.abs(m.c-block.c)>1||Math.abs(m.row-block.row)>1)continue;if(m.type==="boss"||m.type==="movingBoss"){m.hp-=Math.ceil(m.hp/2);if(m.hp<=0)defeatMonster(m)}else defeatMonster(m)}for(const other of game.blocks){if(!other.alive||other.type==="iron"||Math.abs(other.c-block.c)>1||Math.abs(other.row-block.row)>1)continue;if(other.type==="armor"){other.hp-=Math.ceil(other.hp/2);if(other.hp<=0)destroy(other)}else destroy(other)}}}
@@ -1327,6 +1331,7 @@ for(const item of g.items){if(item.collected)continue;const x=X0+(item.c+.5)*CW,
 
 g.balls=g.balls.filter(b=>{if(b.y-b.r>H){if((g.manualBarrier||0)>0||(b.bounceCharges||0)>0||b.bounceReady||((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed)){if((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed){b.boomerangUsed=true;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));return true}if((g.manualBarrier||0)>0){b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#80e6b8");return true}b.bounceCharges=Math.max(0,(b.bounceCharges||1)-1);b.bounceReady=b.bounceCharges>0;b.itemBounce=b.bounceReady;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#ff9df4");return true}g.launchX=Math.max(12,Math.min(W-12,b.x));return false}return true}).concat(g.pending);
 g.effects=g.effects.filter(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;return p.life>0});
+g.lineBeams=(g.lineBeams||[]).filter(beam=>(beam.life-=dt)>0);
 if(!g.mini&&g.monsters.every(m=>!m.alive)&&g.blocks.every(b=>!b.alive||b.type==="iron"||b.type==="coin")){finishStage();return}
 if(!g.balls.length&&!(g.volleyQueue&&g.volleyQueue.length)){if(g.mini){g.items=g.items.filter(item=>!item.collected&&!item.usedThisVolley);miniTurnEnd();return}advanceMonsters();if(g.cleared)return;g.waiting=true;g.nextX=g.launchX;updateStats()}
 }
@@ -1385,6 +1390,21 @@ for(const m of g.monsters){if(!m.alive)continue;
  ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.fillRect(x-11,y-6,7,5);ctx.fillRect(x+4,y-6,7,5);
  ctx.fillStyle="#ffffff";ctx.font="bold 13px system-ui";ctx.textAlign="center";ctx.fillText(String(Math.max(1,Math.ceil(m.hp))),x,y+12);
  if(m.type==="moving"){ctx.fillStyle="#fff1c2";ctx.font="bold 10px system-ui";ctx.fillText("↔",x,y-23)}if(boss){ctx.fillStyle="#ffd1f8";ctx.font="bold 10px system-ui";ctx.fillText(m.type==="movingBoss"?"↔ BOSS":"BOSS",x,y-23)}ctx.restore();}
+// 横・縦HP半減ブロックの発射ビーム（ブロック破壊後に描画）。
+for(const beam of (g.lineBeams||[])){
+ const progress=1-beam.life/beam.maxLife;
+ const reach=Math.min(1,progress*5);
+ const halfSpan=beam.horizontal?COLS*CW:ROWS*CH;
+ const left=beam.horizontal?Math.max(X0,beam.x-halfSpan*reach):beam.x;
+ const right=beam.horizontal?Math.min(X0+COLS*CW,beam.x+halfSpan*reach):beam.x;
+ const top=beam.horizontal?beam.y:Math.max(Y0,beam.y-halfSpan*reach);
+ const bottom=beam.horizontal?beam.y:Math.min(Y0+ROWS*CH,beam.y+halfSpan*reach);
+ ctx.save();ctx.globalAlpha=Math.min(1,beam.life/.17);ctx.lineCap="round";
+ ctx.shadowColor=beam.color;ctx.shadowBlur=19;ctx.strokeStyle=beam.color;ctx.lineWidth=10;
+ ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(right,bottom);ctx.stroke();
+ ctx.shadowBlur=0;ctx.strokeStyle="#ffffff";ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(left,top);ctx.lineTo(right,bottom);ctx.stroke();ctx.restore();
+}
 for(const item of g.items){const x=X0+(item.c+.5)*CW,y=Y0+(item.row+.5)*CH,col=PUSH_DIRECTIONS[item.type]?"#81edff":item.type==="miniBall"?"#9bff70":item.type==="damage"?"#f9e276":item.type==="speed"?"#7effd2":item.type==="bounce"?"#ff9df4":"#d4a0ff";ctx.save();ctx.shadowColor=col;ctx.shadowBlur=12;ctx.fillStyle="#182b45";ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=col;ctx.font="bold 11px system-ui";ctx.fillText(PUSH_DIRECTIONS[item.type]?.[2]??(item.type==="miniBall"?"+1":item.type==="damage"?(g.mini?"×2":"×1.5"):item.type==="speed"?"×1.5":item.type==="bounce"?"↥1":"+1"),x,y+4);ctx.restore()}
 ctx.strokeStyle="#4e7899";ctx.beginPath();ctx.moveTo(0,BASEY+13);ctx.lineTo(W,BASEY+13);ctx.stroke();
 if(g.waiting&&!g.cleared){drawBall({x:g.nextX,y:BASEY,r:7});if(store.settings.guide){ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle="#ffe582";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(g.nextX,BASEY);ctx.lineTo(g.nextX+Math.cos(g.aim)*250,BASEY+Math.sin(g.aim)*250);ctx.stroke();ctx.restore()}}
