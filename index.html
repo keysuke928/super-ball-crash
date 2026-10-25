@@ -1189,6 +1189,26 @@ function playMonsterDefeatSound(){
   osc.start(now);osc.stop(now+0.215);
  }catch(e){}
 }
+// 横・縦ビーム発射時の電子レーザー音（外部音声ファイル不要）。
+let lineBeamSoundLast=-1;
+function playLineBeamSound(){
+ const ac=blockSoundContext;
+ if(!ac||ac.state!=="running")return;
+ const now=ac.currentTime;
+ if(now-lineBeamSoundLast<0.085)return;
+ lineBeamSoundLast=now;
+ try{
+  const osc=ac.createOscillator(),gain=ac.createGain();
+  osc.type="sawtooth";
+  osc.frequency.setValueAtTime(1050,now);
+  osc.frequency.exponentialRampToValueAtTime(210,now+0.23);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.075,now+0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.24);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());
+  osc.start(now);osc.stop(now+0.25);
+ }catch(e){}
+}
 const PUSH_DIRECTIONS={push_right:[1,0,"→"],push_left:[-1,0,"←"],push_up:[0,-1,"↑"],push_down:[0,1,"↓"],push_upLeft:[-1,-1,"↖"],push_upRight:[1,-1,"↗"],push_downLeft:[-1,1,"↙"],push_downRight:[1,1,"↘"]};
 function halfLine(block){
  const horizontal=block.type==="rowHalf";
@@ -1198,6 +1218,7 @@ function halfLine(block){
   other.hp-=Math.ceil(other.hp/2);
   if(other.hp<=0)destroy(other);
  }
+ playLineBeamSound();
  // 破壊された位置から、同じ行／列の両端へビームを放つ。
  game.lineBeams??=[];
  game.lineBeams.push({x:X0+(block.c+.5)*CW,y:Y0+(block.row+.5)*CH,
