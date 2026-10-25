@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>スーパーボールクラッシュ</title>
+<style>
+:root{font-family:system-ui,"Hiragino Kaku Gothic ProN",sans-serif;color:#eaf6ff;background:#091126}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 5%,#22345d,#080e20 70%)}
+button,select,input{font:inherit}button{cursor:pointer;background:#203b64;color:#eaf6ff;border:1px solid #69b6fa;border-radius:10px;padding:10px 14px}button:hover:not(:disabled){background:#335b88}button:disabled{opacity:.35;cursor:default}
+h1{text-shadow:0 0 22px #24c9ff;color:#9ae9ff}h2{margin-top:0}.wrap{max-width:960px;margin:auto;padding:14px}
+.panel{background:#101e38e8;border:1px solid #416d9b;border-radius:18px;padding:20px;box-shadow:0 0 30px #10366a66}
+.hidden{display:none!important}.center{text-align:center}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+#gameArea{display:flex;gap:16px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+canvas{display:block;max-width:100%;height:auto;touch-action:none;background:#0b1530;border:2px solid #4d9be5;border-radius:12px;box-shadow:0 0 22px #2579db55}
+aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;flex-direction:column;gap:7px;padding:8px;border:1px solid #416d9b;border-radius:12px}.slot-main{flex:1;min-height:65px}.slot-delete{font-size:.8em;border-color:#dc8d98;background:#482936}.slots,.stages,.skins{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}
+.stages{grid-template-columns:repeat(5,1fr)}.stages button{min-height:64px;padding:7px}
+/* コインボールの特殊能力を常時読みやすく表示 */
+#coinSkins,#gemSkins{grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}
+#coinSkins button,#gemSkins button{min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;line-height:1.4;white-space:normal}
+#coinSkins button .ability-label,#gemSkins button .ability-label{display:block;color:#aeeeff;font-size:.8em;font-weight:bold}
+#coinSkins button .ability-text,#gemSkins button .ability-text{display:block;width:100%;background:#102c4c;border:1px solid #548ac1;border-radius:8px;padding:7px 8px;font-size:.88em;line-height:1.5;color:#fff}
+#coinSkins button .coin-status,#gemSkins button .coin-status{display:block;font-weight:bold;color:#ffe08b;margin-top:auto}
+#coinSkins button:disabled,#gemSkins button:disabled{opacity:.78}
+#coinSkins button:disabled .coin-status,#gemSkins button:disabled .coin-status{color:#ffcb75}
+.skinball{display:inline-block;width:25px;height:25px;border-radius:50%;vertical-align:middle;margin-right:8px;box-shadow:0 0 10px currentColor}
+.note{font-size:.9em;color:#aac5e1}label{display:block;margin:12px 0}input[type=range]{width:100%}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#183e63;padding:10px 18px;border-radius:12px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:20}
+#toast.show{opacity:1}.modal{position:fixed;inset:0;background:#040914c9;display:flex;align-items:center;justify-content:center;padding:18px;z-index:10}.modal>.panel{max-width:480px;width:100%;max-height:90vh;overflow:auto}
+#menuBg{position:absolute;inset:0;width:100%;height:100%;border:0;opacity:.45;pointer-events:none}
+#home{position:relative;overflow:hidden;min-height:440px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+#home>*:not(canvas){position:relative;z-index:2}#home .actions button{position:relative;z-index:3}small{color:#a8c6e4}
+.final-stars{margin:16px auto;padding:16px 10px;border:2px solid #f7c948;border-radius:14px;background:#263050;text-align:center}.final-stars p{margin:5px}.final-stars strong{display:block;font-size:clamp(32px,9vw,54px);line-height:1.35;letter-spacing:5px;color:#ffe275;text-shadow:0 0 14px #dba329}.versus-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:20px}
+.versus-choice{display:flex;align-items:center;flex-direction:column;gap:6px;min-height:125px;text-align:center}
+.versus-choice.chosen{border:3px solid #ffe27b;background:#305b83;box-shadow:0 0 12px #ffd85d66}
+.versus-choice small{font-size:12px;line-height:1.4}.versus-orb{display:grid;place-items:center;width:45px;height:45px;border-radius:50%;font-weight:bold;color:#152139;border:2px solid white;box-shadow:0 0 12px #a9dcff77}
+</style></head>
+<body><div class="wrap">
+<section id="home" class="panel center"><canvas id="menuBg"></canvas><h1>スーパーボールクラッシュ</h1><p>SUPER BALL CRASH — 全50ステージ</p><div class="actions"><button id="newBtn">はじめから</button><button id="continueBtn">つづきから</button><button data-open="settings">設定</button></div><p class="note">星を集めてボールの見た目を解放しよう！</p></section>
+<section id="slotScreen" class="panel hidden"><h2 id="slotHeading">セーブデータ選択</h2><div id="slots" class="slots"></div><div class="actions"><button data-open="home">戻る</button></div></section>
+<section id="selectScreen" class="panel hidden"><h2>ステージ選択</h2><p id="progressText"></p><div id="stages" class="stages"></div><div class="actions"><button type="button" disabled title="ショップは準備中です">ショップ（準備中）</button><button id="adminCodeBtn" type="button">🔑 管理人用コード</button><button id="renamePlayerBtn" type="button">✏️ プレイヤー名を変更</button><button id="rankingBtn" type="button">🏆 ミニゲームランキング（100位まで）</button><button id="customStageBtn" type="button">🛠️ 自作ステージ</button><button id="versusBtn" type="button">⚔️ 対決モード</button><button id="minigameBtn" type="button" title="毎ターン3〜8個のブロックが落ちてくるモード">ミニゲーム版</button><button data-open="skins">ボールの見た目</button><button data-open="settings">設定</button><button data-open="home">タイトルへ</button></div></section>
+<section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。自作ステージはこのブラウザに最大10個保存できます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><button id="customSave">💾 保存</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
+<section id="onlineRoomScreen" class="panel hidden"><h2>🌐 オンライン対決・ルーム番号</h2><p class="note">別のパソコンの相手と同じ6桁の番号を入力してください。対戦にはSupabaseの匿名ログイン設定・SQL設定とインターネット接続が必要です。</p><div class="actions"><input id="onlineRoomNumber" inputmode="numeric" maxlength="6" placeholder="6桁のルーム番号" aria-label="ルーム番号" style="padding:12px;border-radius:8px;font-size:18px;max-width:230px"><button id="onlineCreate" type="button">新しいルームを作成</button><button id="onlineJoin" type="button">ルームに参加</button><button id="onlineLeave" type="button">退出</button></div><p id="onlineStatus" class="note center" aria-live="polite">未接続</p><div class="actions"><button id="onlineChoose" type="button" class="hidden">ボールを選ぶ</button><button id="onlineBack" type="button">ステージ選択へ</button></div><p class="note">Supabase接続情報は設定済みです。オンライン対戦には同梱のSQL設定が必要です。</p></section>
+<section id="versusChooseScreen" class="panel hidden"><h2>⚔️ 対決用ボールを選ぼう！</h2><p class="note">相手のボールは、両方が決定するまで表示されません。</p><h3 id="versusChooseTitle">🔵 プレイヤー1のボールを選択</h3><div id="versusChoices1" class="versus-choices"></div><div id="versusChoices2" class="versus-choices hidden"></div><p id="versusChooseInfo" class="note center"></p><div class="actions"><button id="versusConfirm" type="button" disabled>このボールに決定</button><button id="versusStart" type="button" class="hidden" disabled>⚔️ フィールドへ進む</button><button id="versusChooseBack" type="button">ステージ選択に戻る</button></div></section>
+<section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">通常ステージと同じように、迷路の上でマウスを動かして狙い、クリックして決定してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">マウスで狙い、下のボタンで方向を決定してください。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
+<section id="versusScreen" class="panel hidden"><h2>⚔️ 5勝先取の対決モード</h2><p class="note">8×10マスの対決フィールドです。灰色の鉄ブロックは壊せません。選んだ専用ボールで迷路に入ります。マウスで発射方向を決め、カウントダウン後に同時発射します。ボールは鉄ブロックや壁で反射します。ボールがぶつかるとダメージ！ HPが0になったらそのラウンドは負け。先に5勝で優勝です。</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">15 / 15 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">15 / 15 HP</strong></p><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
+<section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="select">戻る</button></div></section>
+<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><p class="note">マウス移動／← →：角度調整<br>左クリック／Space：発射<br>Esc：一時停止<br><br>💥 「爆」の下の数字＝爆発までの残りHP<br>HPが0になると周囲8マスに爆発</p><div class="actions"><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
+<section id="skinsScreen" class="panel hidden"><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
+<section id="settingsScreen" class="panel hidden"><h2>設定</h2>
+<label><input type="checkbox" id="guideSetting"> 発射ガイド線を表示</label>
+<label>背景の明るさ <select id="brightnessSetting"><option value="dark">暗い</option><option value="normal">普通</option><option value="bright">明るい</option></select></label>
+<label>アニメーション <select id="effectsSetting"><option value="low">少ない</option><option value="normal">普通</option><option value="high">多い</option></select></label>
+<label>キーボードの角度調整速度 <select id="aimSetting"><option value="slow">遅い</option><option value="normal">普通</option><option value="fast">速い</option></select></label>
+<label>ゲーム全体の速さ <select id="gameSpeedSetting"><option value="1">1倍（通常）</option><option value="2">2倍（高速）</option></select></label>
+<div style="margin:14px 0;padding:12px;border:1px solid #64748b;border-radius:10px">
+<h3 style="margin:0 0 10px">🔊 サウンド設定</h3>
+<label>音量 <input id="soundVolumeSetting" type="range" min="0" max="100" step="5" value="100"> <span id="soundVolumeValue">100%</span></label>
+<label>音の雰囲気 <select id="soundStyleSetting"><option value="normal">標準</option><option value="soft">やわらかい音</option><option value="bright">明るい音</option></select></label>
+<label>試しに聞く音 <select id="soundPreviewType"><option value="button">ボタン</option><option value="launch">ボール発射</option><option value="wall">壁への衝突</option><option value="blockhit">ブロックへの衝突</option><option value="monsterhit">モンスターへの衝突</option><option value="block">ブロック破壊</option><option value="bomb">爆発</option><option value="item">アイテム取得</option><option value="monster">モンスター撃破</option><option value="clear">ステージクリア</option></select></label>
+<div class="actions"><button id="soundPreviewButton" type="button">▶ 試しに聞く</button></div>
+</div><div class="actions"><button id="settingsBack">戻る</button></div></section>
+<div id="overlay" class="modal hidden"><div class="panel center"><h2 id="overlayTitle"></h2><div id="overlayBody"></div><div class="actions" id="overlayButtons"></div></div></div>
+<div id="toast"></div></div>
+<script>
+"use strict";
+(()=> {
+const W=480,H=680,COLS=8,ROWS=10,CW=54,CH=45,X0=24,Y0=62,BASEY=632,KEY="super-ball-crash-v1";
+const $=id=>document.getElementById(id), canvas=$("board"),ctx=canvas.getContext("2d");
+const screens={custom:$("customStageScreen"),versusDirection:$("versusDirectionScreen"),online:$("onlineRoomScreen"),home:$("home"),slot:$("slotScreen"),select:$("selectScreen"),play:$("playScreen"),skins:$("skinsScreen"),settings:$("settingsScreen"),ranking:$("rankingScreen"),versus:$("versusScreen"),versusChoose:$("versusChooseScreen")};
+const DEFAULT_SETTINGS={guide:true,brightness:"normal",effects:"normal",aim:"normal",gameSpeed:"1",soundVolume:100,soundStyle:"normal"};
+const SKINS=[
+["通常","#ffffff","plain"],["レッド","#ff5e72","plain"],["ブルー","#50b7ff","plain"],
+["スター","#ffe168","star"],["ストライプ","#bc89ff","stripe"],["グリーン","#60f5a8","plain"],
+["ファイア","#ff853d","fire"],["アイス","#a6efff","ice"],["サンダー","#fff35c","bolt"],
+["ギャラクシー","#ad8aff","star"],["ゴールド","#ffd166","stripe"],["レインボー","#ff6ce4","star"],["コズミック","#9de5ff","bolt"],
+["エメラルド","#39f5c5","gem"],["マグマ","#ff593b","fire"],["オーロラ","#83ffe0","wave"],
+["ダイヤモンド","#c8f7ff","gem"],["ブラックホール","#7655c9","orbit"],["サクラ","#ffaddc","flower"],
+["プラズマ","#7d90ff","bolt"],["サンシャイン","#ffe66d","sun"],["ミッドナイト","#496ca7","moon"],
+["クリスタル","#a7fff5","gem"],["フェニックス","#ff8e65","fire"],["オーシャン","#46c8f5","wave"],
+["ネビュラ","#dd8dff","orbit"],["メテオ","#f5b25b","star"],["プリズム","#fc9ee7","gem"],
+["ドラゴン","#70f2a3","bolt"],["スーパーノヴァ","#fff1a3","sun"],["アルティメット","#f9f9ff","crown"]];
+let store,slot=0,mode="new",screen="home",previousScreen="home",settingsBack="home",game=null,paused=false,keys=new Set(),raf=0,last=0,toastTimer=0,menuTime=0,resultReturn=null;
+function safeLoad(){try{const o=JSON.parse(localStorage.getItem(KEY));return o&&typeof o==="object"?o:{}}catch{return {}}}
+store=safeLoad();if(!Array.isArray(store.slots))store.slots=Array(10).fill(null);
+// 旧セーブの購入済みボール番号を移行（タイムボールは旧23番）。
+if(!store.timeBallRemovedV1){
+ for(const saved of store.slots){
+  if(!saved)continue;
+  if(Array.isArray(saved.coinSkins))saved.coinSkins=[...new Set(saved.coinSkins.filter(i=>Number.isInteger(i)&&i!==23).map(i=>i>23?i-1:i))];
+  if(Number.isInteger(saved.activeCoinSkin))saved.activeCoinSkin=saved.activeCoinSkin===23?-1:(saved.activeCoinSkin>23?saved.activeCoinSkin-1:saved.activeCoinSkin);
+ }
+ store.timeBallRemovedV1=true;
+ try{localStorage.setItem(KEY,JSON.stringify(store))}catch{}
+}
+store.settings={...DEFAULT_SETTINGS,...(store.settings||{})};
+// ミニゲームの記録とコインはセーブスロットとは独立して保存する。
+store.miniBest=Math.max(15,Number(store.miniBest)||15);
+store.miniCoins=Math.max(0,Number(store.miniCoins)||0);
+// ミニゲームのローカルランキング。上位100件を保持。
+store.miniRanking=Array.isArray(store.miniRanking)?store.miniRanking.filter(r=>r&&typeof r.name==="string"&&Number.isFinite(Number(r.score))&&Number(r.score)>=0).map(r=>({name:r.name.slice(0,20),score:Math.floor(Number(r.score)),date:typeof r.date==="string"?r.date:"",slot:Number.isInteger(r.slot)&&r.slot>=0&&r.slot<10?r.slot:null})).sort((a,b)=>b.score-a.score).slice(0,100):[];
+
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch{toast("保存できません。ブラウザの保存設定を確認してください")}}
+function toast(s){const el=$("toast");el.textContent=s;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600)}
+function show(s){screen=s;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==s));if(s==="select")renderSelect();if(s==="skins")renderSkins();if(s==="settings")renderSettings();if(s==="slot")renderSlots();if(s==="ranking")renderRanking();if(s==="custom")renderCustomEditor();if(s==="versus")drawVersusBoard();if(s==="versusDirection")drawVersusAim();if(s==="versusChoose"){renderVersusChoices()}}
+function modal(title,body,buttons){$("overlayTitle").textContent=title;$("overlayBody").innerHTML=body;$("overlayButtons").replaceChildren();buttons.forEach(([label,fn])=>{const b=document.createElement("button");b.textContent=label;b.onclick=fn;$("overlayButtons").appendChild(b)});$("overlay").classList.remove("hidden")}
+function closeModal(){$("overlay").classList.add("hidden")}
+function openResultSkins(){closeModal();resultReturn=()=>{show("play");if(game&&game.cleared){if(game.monsters.some(m=>m.alive&&m.row>=ROWS))showGameOverResult();else showClearResult()}};show("skins")}
+function showGameOverResult(){const g=game;if(!g)return;if(g.custom){modal("ゲームオーバー","<p>自作ステージにもう一度挑戦できます。</p>",[["もう一度",()=>startCustomStage()],["編集に戻る",()=>{closeModal();show("custom")}]]);return;} modal("ゲームオーバー","<p>モンスターが最下段を越えました！</p><p>このステージの最初から再挑戦できます。</p>",[["もう一度挑戦",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}]])}
+
+function newData(){return{playerName:"",nameChangedAt:0,unlocked:1,stars:Array(50).fill(0),skin:0,tutorial:false,checkpoint:1,coins:0,gems:0,dailyClaimed:"",coinClaimed:Array(50).fill(false),coinSkins:[],activeCoinSkin:-1,gemSkins:[],activeGemSkin:-1}}
+function data(){return store.slots[slot]}
+function playerName(saved,i=slot){return typeof saved?.playerName==="string"&&saved.playerName.trim()?saved.playerName.trim():`データ ${i+1}`}
+function nextNameChangeDate(saved){
+ const changed=Number(saved?.nameChangedAt)||0;
+ if(!changed)return null;
+ const d=new Date(changed);if(!Number.isFinite(d.getTime()))return null;
+ const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+1);
+ const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+ d.setDate(Math.min(day,lastDay));return d;
+}
+function askPlayerName(onDone,canCancel=true){
+ const current=data()?.playerName||"";
+ const next=current?nextNameChangeDate(data()):null;
+ if(current&&next&&Date.now()<next.getTime()){
+  modal("名前の変更制限",`<p>プレイヤーネームは１ヶ月に１回しか変更できません。</p><p><strong>「１ヶ月は変更できません」</strong></p><p>次に変更できる日：${next.getFullYear()}年${next.getMonth()+1}月${next.getDate()}日</p>`,[["閉じる",closeModal]]);return;
+ }
+ modal(current?"プレイヤー名を変更":"プレイヤー名を決めよう",'<p>ランキングにも表示される名前を入力してください（1〜20文字）。</p><p><strong>注意：名前を変更すると、１ヶ月は変更できません。</strong></p><input id="playerNameInput" type="text" maxlength="20" autocomplete="off" style="width:95%;padding:10px;border-radius:8px;font-size:16px" placeholder="プレイヤー名">',[]);
+ const input=$("playerNameInput");input.value=current;input.focus();
+ const buttons=$("overlayButtons");
+ function confirm(){const limit=current?nextNameChangeDate(data()):null;if(current&&limit&&Date.now()<limit.getTime()){toast("１ヶ月は変更できません");return}const name=input.value.trim();if(!name){toast("名前を入力してください");input.focus();return}const oldName=playerName(data());
+  const newName=name.slice(0,20);
+  // 記録をセーブスロットに紐付け、過去の記録も名前変更に追従させる。
+  store.miniRanking.forEach(r=>{
+   if(r.slot===slot || (r.slot==null && r.name===oldName)){
+    r.name=newName;r.slot=slot;
+   }
+  });
+  data().playerName=newName;if(current&&newName!==current)data().nameChangedAt=Date.now();persist();closeModal();if(onDone)onDone();else {renderSelect();toast("プレイヤー名を変更しました")}}
+ input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();confirm()}});
+ if(canCancel){const cancel=document.createElement("button");cancel.textContent="キャンセル";cancel.onclick=closeModal;buttons.appendChild(cancel)}
+ const ok=document.createElement("button");ok.textContent="決定";ok.onclick=confirm;buttons.appendChild(ok);
+}
+
+function starsTotal(){return data().stars.reduce((a,b)=>a+b,0)}
+// スキン番号0を初期段階とし、1段階ごとにダメージ+1、2段階ごとに球+1。
+const COIN_SKINS=[
+ {name:"🔥 ファイアボール",color:"#ff7738",kind:"fire",price:2000,damage:1,balls:3,desc:"当たったブロックの周囲にも1ダメージ"},
+ {name:"❄️ アイスボール",color:"#7ce8ff",kind:"ice",price:3000,damage:2,balls:2,desc:"モンスターを3秒間停止"},
+ {name:"⚡ サンダーボール",color:"#f8e66c",kind:"thunder",price:5000,damage:2,balls:3,desc:"近くの別の敵に1ダメージ"},
+ {name:"🟣 貫通ボール",color:"#a375ff",kind:"pierce",price:7000,damage:1,balls:5,desc:"ブロックを跳ね返らずに貫通"},
+ {name:"🟢 分裂ボール",color:"#83ff81",kind:"split",price:10000,damage:1,balls:2,desc:"各ボールが初回接触時に左右へ2球分裂"},
+ {name:"🌟 ラッキーボール",color:"#ffcf51",kind:"lucky",price:15000,damage:2,balls:3,desc:"ブロック破壊時10%で10コイン"},
+ {name:"💣 ボムボール",color:"#ff914d",kind:"bombball",price:4000,damage:2,balls:2,desc:"5回衝突すると周囲に1ダメージの小爆発"},
+ {name:"👻 ゴーストボール",color:"#ddd9ff",kind:"ghost",price:9000,damage:2,balls:4,desc:"鉄ブロックをすり抜ける"},
+ {name:"☠️ ポイズンボール",color:"#adf46c",kind:"poison",price:12000,damage:2,balls:3,desc:"モンスターに毒：3秒間で追加3ダメージ"},
+ {name:"🩸 バンパイアボール",color:"#ff526c",kind:"vampire",price:14000,damage:3,balls:3,desc:"敵を倒すと10%で追加ボール1発"},
+ {name:"🪃 ブーメランボール",color:"#ffc08b",kind:"boomerang",price:22000,damage:3,balls:4,desc:"下端に到達した際、一度だけ上へ跳ね返る"},
+ {name:"🎯 ホーミングボール",color:"#ffa8eb",kind:"homing",price:30000,damage:2,balls:6,desc:"近くのモンスターへ少しずつ方向を曲げる"},
+ {name:"🛡️ シールドボール",color:"#8bdcff",kind:"shield",price:35000,damage:4,balls:4,desc:"画面下端で一度だけ跳ね返る"},
+ {name:"☄️ メテオボール",color:"#ff8a43",kind:"meteor",price:40000,damage:5,balls:4,desc:"10回衝突すると周囲に3ダメージ"},
+ {name:"👑 キングボール",color:"#ffe079",kind:"king",price:50000,damage:5,balls:5,desc:"5発目だけダメージ2倍"},
+ {name:"🪨 ドリルボール",color:"#b6a08b",kind:"drill",price:6000,damage:2,balls:3,desc:"同じブロックへの2回目以降の命中はダメージ+1"},
+ {name:"🌿 ツタボール",color:"#74cf75",kind:"vine",price:8000,damage:1,balls:6,desc:"モンスターの移動速度を5秒間半分にする"},
+ {name:"🪙 ゴールドボール",color:"#ffd04c",kind:"gold",price:11000,damage:2,balls:4,desc:"モンスター撃破時20%で20コイン獲得"},
+ {name:"🔥 マグマボール",color:"#ff583a",kind:"magma",price:15000,damage:3,balls:3,desc:"命中したブロックに3秒後、追加2ダメージ"},
+ {name:"🪞 ミラーボール",color:"#d4edff",kind:"mirror",price:18000,damage:2,balls:5,desc:"壁に当たると1%でボールを1個複製"},
+ {name:"🌙 ムーンボール",color:"#a8b5ff",kind:"moon",price:24000,damage:3,balls:4,desc:"壁で反射するたび速度が少し上昇"},
+ {name:"💥 クラッシュボール",color:"#ff9965",kind:"crash",price:28000,damage:4,balls:4,desc:"ブロックを破壊すると真下のブロックに2ダメージ"},
+ {name:"🧬 コピーボール",color:"#9ff0dc",kind:"copy",price:32000,damage:2,balls:6,desc:"最初に取ったアイテムの効果を1回だけ2倍にする"},
+ {name:"🌠 スターボール",color:"#f9d1ff",kind:"star",price:45000,damage:4,balls:5,desc:"7回衝突すると次の命中ダメージが2倍"},
+ {name:"🐉 ドラゴンボール",color:"#e44e6c",kind:"dragon",price:60000,damage:5,balls:5,desc:"10回衝突するたび周囲の敵に2ダメージ"}
+];
+const GEM_SKINS=[
+ {name:"✨ エンジェルボール",color:"#fff5ba",kind:"angel",price:600,damage:2,balls:4,desc:"1回の発射につき、最初に当たった敵に追加3ダメージ"},
+ {name:"🌊 ウォーターボール",color:"#5acaff",kind:"water",price:900,damage:2,balls:5,desc:"命中地点の左右のブロックに1ダメージ"},
+ {name:"🪐 プラネットボール",color:"#9d8bff",kind:"planet",price:1500,damage:3,balls:5,desc:"左右の壁を通り抜け、反対側から出現"},
+ {name:"💠 ダイヤモンドボール",color:"#b7f5ff",kind:"diamond",price:1800,damage:4,balls:4,desc:"鉄ブロック命中時、近くの敵に2ダメージ"},
+ {name:"🕳️ ワープボール",color:"#b879ff",kind:"warp",price:3000,damage:3,balls:7,desc:"5回衝突でランダムな位置へワープ"},
+ {name:"☀️ ソーラーボール",color:"#ffdc66",kind:"solar",price:3300,damage:5,balls:4,desc:"10回衝突で画面内の敵全体に1ダメージ"},
+ {name:"🔮 マジックボール",color:"#d8a3ff",kind:"magic",price:3600,damage:4,balls:6,desc:"発射ごとに攻撃力が1〜2倍に変化"},
+ {name:"🐦 フェニックスボール",color:"#ff805b",kind:"phoenix",price:4200,damage:5,balls:5,desc:"下端に戻ると1回だけ再発射"},
+ {name:"🌀 ディメンションボール",color:"#75e8f5",kind:"dimension",price:4800,damage:5,balls:6,desc:"5回衝突で最も近い敵の反対側に瞬間移動"},
+ {name:"👑 ロイヤルボール",color:"#ffe187",kind:"royal",price:5400,damage:6,balls:5,desc:"5発目ごとに追加5ダメージ"},
+ {name:"🌟 レジェンドボール",color:"#ffef9b",kind:"legend",price:6000,damage:5,balls:7,desc:"10回衝突ごとに近くの敵3体に2ダメージ"},
+ // スペースキーで1斉射につき1回発動するジェムボール
+ {name:"💥 バーストボール",color:"#ff745c",kind:"manual_burst",price:2000,damage:3,balls:4,desc:"手動：スペースキーで飛行中の球の周囲に2ダメージの爆発"},
+ {name:"🛑 ストップボール",color:"#a1e6ff",kind:"manual_stop",price:2400,damage:3,balls:5,desc:"手動：スペースキーで飛行中の球を2秒間停止"},
+ {name:"↩️ リターンボール",color:"#a5c9ff",kind:"manual_return",price:2800,damage:4,balls:4,desc:"手動：スペースキーで先頭の球の方向を反転"},
+ {name:"🎯 ターゲットボール",color:"#ffb35a",kind:"manual_target",price:3200,damage:3,balls:6,desc:"手動：スペースキーで最も近いモンスターへ方向転換"},
+ {name:"⚡ スピードボール",color:"#ffed72",kind:"manual_speed",price:3600,damage:4,balls:5,desc:"手動：スペースキーで5秒間、飛行中の球の速度を2倍"},
+ {name:"🪄 テレポートボール",color:"#ce92ff",kind:"manual_teleport",price:4400,damage:4,balls:6,desc:"手動：発射中に盤面をクリックして球を瞬間移動（1発射につき1回）"},
+ {name:"🛡️ バリアボール",color:"#80e6b8",kind:"manual_barrier",price:4800,damage:5,balls:5,desc:"手動：スペースキーで画面下端に5秒間の反射バリア"},
+ {name:"🏹 スナイパーボール",color:"#f6b0f4",kind:"manual_sniper",price:5200,damage:5,balls:4,desc:"手動：スペースキーの後、敵をクリックして10ダメージ"},
+ {name:"🌪️ リバースボール",color:"#b1baff",kind:"manual_reverse",price:5600,damage:5,balls:6,desc:"手動：スペースキーで飛行中のすべての球を反転"},
+ {name:"⏪ タイムリワインドボール",color:"#8de8ff",kind:"manual_rewind",price:6400,damage:5,balls:6,desc:"手動：スペースキーで飛行中の球の位置と速度を約3秒前に戻す（ダメージは戻らない）"}
+];
+// 以前の20ステージ版のセーブデータもそのまま利用できるようにする。
+store.slots=store.slots.slice(0,10).map(d=>{if(!d)return null;d.stars=Array.from({length:50},(_,i)=>Math.max(0,Math.min(3,Number(d.stars?.[i])||0)));d.unlocked=Math.max(1,Math.min(50,Number(d.unlocked)||1));d.checkpoint=Math.max(1,Math.min(50,Number(d.checkpoint)||1));d.coins=Math.max(0,Number(d.coins)||0);d.coinSkins=Array.isArray(d.coinSkins)?d.coinSkins.filter(i=>Number.isInteger(i)&&i>=0&&i<COIN_SKINS.length):[];d.activeCoinSkin=Number.isInteger(d.activeCoinSkin)&&d.coinSkins.includes(d.activeCoinSkin)?d.activeCoinSkin:-1;d.gems=Math.max(0,Number(d.gems)||0);// サクラボール削除前の購入インデックスを一度だけ移行する。
+if(!d.sakuraGemRemoved){
+ const oldOwned=Array.isArray(d.gemSkins)?d.gemSkins:[];
+ d.gemSkins=oldOwned.filter(i=>Number.isInteger(i)&&i!==2).map(i=>i>2?i-1:i);
+ d.activeGemSkin=Number.isInteger(d.activeGemSkin)?(d.activeGemSkin===2?-1:d.activeGemSkin>2?d.activeGemSkin-1:d.activeGemSkin):-1;
+ d.sakuraGemRemoved=true;
+}
+// ギャラクシー・フローズン削除に伴う既存セーブの購入番号の移行。
+if(!d.galaxyFrozenGemRemoved){
+ const remap=i=>i===4||i===5?-1:i>5?i-2:i;
+ d.gemSkins=(Array.isArray(d.gemSkins)?d.gemSkins:[]).map(remap).filter(i=>i>=0);
+ d.activeGemSkin=Number.isInteger(d.activeGemSkin)?remap(d.activeGemSkin):-1;
+ d.galaxyFrozenGemRemoved=true;
+}
+d.gemSkins=Array.isArray(d.gemSkins)?d.gemSkins.filter(i=>Number.isInteger(i)&&i>=0&&i<GEM_SKINS.length):[];d.activeGemSkin=Number.isInteger(d.activeGemSkin)&&d.gemSkins.includes(d.activeGemSkin)?d.activeGemSkin:-1;d.dailyClaimed=typeof d.dailyClaimed==="string"?d.dailyClaimed:"";d.coinClaimed=Array.from({length:50},(_,i)=>Boolean(d.coinClaimed?.[i]||d.stars[i]>0));return d});
+while(store.slots.length<10)store.slots.push(null);
+
+const SKIN_POWER=[[1, 1], [1, 2], [1, 3], [2, 2], [1, 5], [2, 3], [1, 7], [4, 2], [3, 3], [5, 2], [1, 11], [2, 6], [1, 13], [7, 2], [3, 5], [2, 8], [1, 17], [9, 2], [1, 19], [10, 2], [3, 7], [11, 2], [1, 23], [6, 4], [5, 5], [13, 2], [3, 9], [7, 4], [1, 29], [10, 3], [1, 31]];
+function skinPower(){if(data()?.activeGemSkin>=0){const c=GEM_SKINS[data().activeGemSkin];return {level:-1,damage:c.damage,balls:c.balls,kind:c.kind}}if(data()?.activeCoinSkin>=0){const c=COIN_SKINS[data().activeCoinSkin];return {level:-1,damage:c.damage,balls:c.balls,kind:c.kind}}const level=Math.max(0,Math.min(SKINS.length-1,Number(data()?.skin)||0));const [damage,balls]=SKIN_POWER[level];return {level,damage,balls}}
+function renderSlots(){
+ const el=$("slots");el.replaceChildren();
+ $("slotHeading").textContent=mode==="new"?"新しいゲームを開始（10データ）":"続きから遊ぶ（10データ）";
+ store.slots.forEach((saved,i)=>{
+   const box=document.createElement("div");box.className="save-slot";
+   const b=document.createElement("button");b.className="slot-main";
+   const progress=saved?`到達 ${saved.unlocked} / 50 ・ 星 ${saved.stars.reduce((a,b)=>a+b,0)} / 150 ・ ${saved.coins||0}コイン ・ 💎${saved.gems||0}ジェム`:"未作成";
+   b.textContent="";b.append(document.createTextNode(`${playerName(saved,i)}（データ ${i+1}）`),document.createElement("br"));const info=document.createElement("small");info.textContent=progress;b.appendChild(info);
+   b.onclick=()=>{
+     slot=i;
+     if(mode==="new"){
+       if(saved)modal("上書きの確認","このデータを消して最初から始めますか？",[["キャンセル",closeModal],["上書きする",()=>{closeModal();startNew()}]]);
+       else startNew();
+     }else if(saved){if(!saved.playerName?.trim())askPlayerName(()=>{show("select");dailyReward()},false);else{show("select");dailyReward()}}
+     else toast("このデータは未作成です");
+   };
+   box.appendChild(b);
+   if(saved){
+     const del=document.createElement("button");del.className="slot-delete";del.textContent="このデータを削除";
+     del.onclick=()=>modal(`データ ${i+1} を削除しますか？`,"<p>このデータのステージ・星・スキンの記録は消え、元に戻せません。</p>",[
+       ["キャンセル",closeModal],
+       ["削除する",()=>{store.slots[i]=null;persist();closeModal();renderSlots();toast(`データ ${i+1} を削除しました`)}]
+     ]);
+     box.appendChild(del);
+   }
+   el.appendChild(box);
+ });
+}
+function startNew(){store.slots[slot]=newData();persist();askPlayerName(()=>{show("select");dailyReward(()=>tutorial())},false)}
+function tutorial(){if(data().tutorial)return;const pages=[
+["ようこそ！","マウスを動かすか、← → キーで発射角度を調整します。左クリックかスペースキーで球を発射します。"],
+["ブロックの種類","通常ブロックは数字の分だけダメージが必要です。爆発ブロックは周囲8マスの壊せるブロックを連鎖破壊します。鉄ブロックは壊れません。"],
+["パワーアップ","攻撃力アップは通常ステージで×1.5、ミニゲームで×2です。速度は×1.5、＋1は球の数を増やします。各球は同じアイテムを一度だけ利用できます。"],
+["星とセーブ","スキンごとに1発のダメージと連続発射する球の数が異なります。スキン選択画面で確認できます。少ない発射回数でクリアすると星が増えます。ステージ開始時とクリア時に手動セーブできます。クリア時は自動セーブされます。"]];
+let n=0;function page(){modal(`チュートリアル ${n+1}/${pages.length}：${pages[n][0]}`,`<p>${pages[n][1]}</p>`,[[n===pages.length-1?"始める":"次へ",()=>{n++;if(n<pages.length)page();else{data().tutorial=true;persist();closeModal();startStage(1)}}]])}page()}
+// デイリー報酬は選択したセーブデータごとに、端末の現地日付で1日1回。
+function dailyReward(after){
+ const d=data();if(!d)return;
+ const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+ if(d.dailyClaimed===today){if(after)after();return}
+ modal("デイリー報酬 🎁",`<p>今日のログイン報酬は <strong>💎 300ジェム</strong> です！</p><p>現在の所持ジェム：${d.gems||0}個</p>`,[["300ジェムを受け取る",()=>{
+  if(d.dailyClaimed!==today){d.gems=(Number(d.gems)||0)+300;d.dailyClaimed=today;persist()}
+  closeModal();renderSelect();toast("デイリー報酬：300ジェム獲得！");if(after)after();
+ }]])
+}
+// 対決フィールド：8列×10行。鉄ブロックで通路を作り、両プレイヤーの開始地点は空ける。
+const VERSUS_MAZE=[
+ "........",
+ ".##..##.",
+ "...#....",
+ "##.#.##.",
+ "...#....",
+ ".#...#..",
+ ".#.###..",
+ "...#....",
+ ".##..##.",
+ "........"
+];
+// 対決モード限定ボール。通常ステージのスキンや通貨には影響しない。
+const VERSUS_BALL_TYPES=[
+ {name:"ブレイズ",color:"#ff8554",symbol:"炎",desc:"特殊攻撃：火花の壁｜壁に当たると25%で火花を設置。触れると2ダメージ"},
+ {name:"アクア",color:"#54caff",symbol:"水",desc:"特殊攻撃：水流撃｜命中時にHPを1回復"},
+ {name:"ボルト",color:"#ffe36b",symbol:"雷",desc:"特殊攻撃：電光撃｜移動速度が20%アップ"},
+ {name:"ガード",color:"#92e7a2",symbol:"盾",desc:"特殊攻撃：鉄壁｜受けるダメージを1軽減（最低0）"},
+ {name:"シャドウ",color:"#bb95fa",symbol:"影",desc:"特殊攻撃：影討ち｜3回に1回、追加2ダメージ"},
+ {name:"スター",color:"#ff9fd4",symbol:"星",desc:"特殊攻撃：流星撃｜4回に1回、追加3ダメージ"},
+ {name:"フロスト",color:"#a8e8ff",symbol:"氷",desc:"特殊攻撃：氷の壁｜壁に当たると30%で氷結床を設置。触れると減速"},
+ {name:"ストーン",color:"#b9ac9d",symbol:"岩",desc:"特殊攻撃：岩石撃｜衝突時に追加1ダメージ"},
+ {name:"ウィンド",color:"#b5f3d0",symbol:"風",desc:"特殊攻撃：疾風撃｜移動速度が25%アップ"},
+ {name:"ポイズン",color:"#b2e568",symbol:"毒",desc:"特殊攻撃：毒針の壁｜壁に当たると20%で毒針を設置。触れると2ダメージ"},
+ {name:"マグマ",color:"#ff6549",symbol:"溶",desc:"特殊攻撃：溶岩撃｜追加2ダメージ、反動1ダメージ"},
+ {name:"メタル",color:"#c6d4e5",symbol:"鋼",desc:"特殊攻撃：鋼鉄装甲｜受けるダメージを半減"},
+ {name:"サンダー",color:"#f6d84c",symbol:"電",desc:"特殊攻撃：連雷撃｜3回に1回、追加2ダメージ"},
+ {name:"ミラージュ",color:"#e2b3ff",symbol:"幻",desc:"特殊攻撃：幻影回避｜3回に1回、攻撃を回避"},
+ {name:"リーフ",color:"#7fdc81",symbol:"葉",desc:"特殊攻撃：葉の再生｜命中時にHPを2回復"},
+ {name:"コメット",color:"#ffb677",symbol:"彗",desc:"特殊攻撃：彗星突撃｜高速移動＋追加1ダメージ"},
+ {name:"クリスタル",color:"#8ae4e2",symbol:"晶",desc:"特殊攻撃：結晶反射｜受けたダメージの半分を反射"},
+ {name:"ファントム",color:"#9996d7",symbol:"霊",desc:"特殊攻撃：霊体回避｜4回に1回、攻撃を回避"},
+ {name:"サン",color:"#ffd275",symbol:"陽",desc:"特殊攻撃：太陽爆発｜3回に1回、追加3ダメージ"},
+ {name:"ムーン",color:"#b2bce9",symbol:"月",desc:"特殊攻撃：月光治癒｜命中時にHPを1回復"},
+ {"name":"オーロラ","color":"#8ef5ed","symbol":"極","desc":"特殊能力：オーロラ光線：4回ごとに追加3ダメージ"},
+ {"name":"ネビュラ","color":"#987bff","symbol":"雲","desc":"特殊能力：星雲連撃：3回ごとに追加2ダメージ"},
+ {"name":"フェニックス","color":"#ff7567","symbol":"鳥","desc":"特殊能力：不死鳥の再生：HP5以下で命中すると2回復"},
+ {"name":"ブリザード","color":"#c4f5ff","symbol":"雪","desc":"特殊能力：吹雪：命中時に相手を減速"},
+ {"name":"タイタン","color":"#c0a27d","symbol":"巨","desc":"特殊能力：巨人の一撃：追加2ダメージ・移動速度10%減"},
+ {"name":"サクラ","color":"#f9aed0","symbol":"桜","desc":"特殊能力：桜吹雪：2回ごとに追加1ダメージ"},
+ {"name":"オーシャン","color":"#378fd9","symbol":"海","desc":"特殊能力：大波：命中時に追加1ダメージ"},
+ {"name":"サボテン","color":"#82cb6b","symbol":"棘","desc":"特殊能力：トゲの壁：壁に当たると30%でトゲを設置。触れると1ダメージ"},
+ {"name":"ゴールド","color":"#ffd34a","symbol":"金","desc":"特殊能力：黄金の地雷：壁に当たると15%で地雷を設置。触れると3ダメージ"},
+ {"name":"ダイヤ","color":"#a9f7ff","symbol":"◆","desc":"特殊能力：ダイヤの守り：受けるダメージを1軽減"},
+ {"name":"レインボー","color":"#ef9ff5","symbol":"虹","desc":"特殊能力：虹色連撃：3回ごとに追加2ダメージ"},
+ {"name":"スパーク","color":"#ffbf60","symbol":"光","desc":"特殊能力：閃光加速：移動速度15%アップ"},
+ {"name":"ブラックホール","color":"#7775ab","symbol":"穴","desc":"特殊能力：重力の壁：壁に当たると25%で重力球を設置。触れると減速"},
+ {"name":"パール","color":"#f4e9d8","symbol":"珠","desc":"特殊能力：真珠の守り＋壁に当たると20%で回復の珠を設置"},
+ {"name":"ドラゴン","color":"#db705d","symbol":"竜","desc":"特殊能力：竜の炎：命中時に追加2ダメージ"},
+ {"name":"コスモ","color":"#6db6f8","symbol":"宙","desc":"特殊能力：宇宙の衝撃：4回ごとに追加3ダメージ"},
+ {"name":"トルネード","color":"#9de0bf","symbol":"渦","desc":"特殊能力：竜巻加速＋壁に当たると25%で風の罠を設置"},
+ {"name":"エメラルド","color":"#64dca3","symbol":"翠","desc":"特殊能力：翠の再生：命中時にHP2回復"},
+ {"name":"ルビー","color":"#ff6b89","symbol":"紅","desc":"特殊能力：紅蓮撃：命中時に追加2ダメージ"},
+ {"name":"サファイア","color":"#638ff1","symbol":"蒼","desc":"特殊能力：氷の波動：相手を減速"}];
+const VERSUS_ABILITIES = ["burn", "heal", "speed", "guard", "shadow", "star", "slow", "rock", "wind", "poison", "magma", "metal", "thunder", "mirage", "leaf", "comet", "crystal", "phantom", "sun", "moon", "aurora", "nebula", "phoenix", "blizzard", "titan", "sakura", "ocean", "cactus", "gold", "diamond", "rainbow", "spark", "blackhole", "pearl", "dragon", "cosmo", "tornado", "emerald", "ruby", "sapphire"];
+function versusAbility(index){return VERSUS_ABILITIES[Math.max(0,Math.min(39,index|0))]||"burn"}
+function versusSpeed(index){const a=versusAbility(index);return ({speed:1.2,wind:1.25,comet:1.18,spark:1.15,tornado:1.25,titan:.9})[a]||1}
+function versusAttack(index,hits){const a=versusAbility(index);let d=1;
+ if(["burn","rock","comet","ocean"].includes(a))d++;
+ if(["magma","titan","dragon","ruby"].includes(a))d+=2;
+ if(["shadow","thunder","nebula","rainbow"].includes(a)&&hits%3===0)d+=2;
+ if(["star","sun","aurora","cosmo"].includes(a)&&hits%4===0)d+=3;
+ if(a==="sun"&&hits%3===0)d+=3;
+ if(a==="poison"&&hits%2===0)d+=2;
+ if(a==="sakura"&&hits%2===0)d++;
+ if(a==="gold"&&hits%5===0)d+=4;
+ return d;
+}
+function versusDefense(index,hits,damage){const a=versusAbility(index);
+ if((a==="mirage"&&hits%3===0)||(a==="phantom"&&hits%4===0))return 0;
+ if(a==="metal")return Math.ceil(damage/2);
+ if(["guard","diamond","pearl"].includes(a))return Math.max(0,damage-1);
+ return damage;
+}
+const versusSelected=[-1,-1];
+let aimVector={x:0,y:-1};
+let lastCountdown=999,onlineRoom=null,onlineSeat=-1,onlineUnsub=null,onlineDb=null,onlineUid=null,onlineRoomData=null,onlineReady=false,onlineDirection=null,onlineStartAt=0,onlineClockOffset=0;
+const SUPABASE_URL="https://ctugrqexpqbuqqrsjvbf.supabase.co";
+const SUPABASE_KEY="sb_publishable_RtN6bPtsrkYR7h-ioUIniw_XF-jQokw";
+function onlineStatus(msg){$("onlineStatus").textContent=msg}
+function loadSupabaseSdk(){return new Promise((resolve,reject)=>{if(window.supabase?.createClient)return resolve();const el=document.createElement("script");el.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";el.onload=resolve;el.onerror=()=>reject(Error("Supabaseライブラリを読み込めません"));document.head.appendChild(el)})}
+async function onlineRpc(fn,args){const {data,error}=await onlineDb.rpc(fn,args);if(error)throw error;return data}
+function parseRoom(row){if(!row)return null;const state=row.game_state||{};const ids=[row.player1_id,row.player2_id].filter(Boolean);const players={};ids.forEach((id,i)=>players[id]=state.players?.[id]||{joinedAt:i,ready:false});return {...state,players,round:state.round||1,wins:state.wins||[0,0],startAt:state.startAt||null,roundResult:state.roundResult||null,champion:state.champion??null}}
+function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);onlineRoomData=value;if(!value){onlineStatus("ルームが見つかりません");return}const ids=[row.player1_id,row.player2_id].filter(Boolean);onlineSeat=ids.indexOf(onlineUid);if(onlineSeat<0){onlineStatus("このルームの参加者ではありません");return}
+ onlineReady=value.players[onlineUid]?.ready===true;onlineDirection=value.players[onlineUid]?.direction||null;
+ if(value.roundResult){onlineStartAt=value.startAt||0;updateVersusScore();const winner=value.roundResult.winner;$("versusCountdown").textContent=value.champion!=null?`🏆 プレイヤー${value.champion+1}が5勝！ 最終勝利！`:winner===-1?`第${value.round}ラウンド：引き分け！ 両者0点`:`第${value.round}ラウンド：プレイヤー${winner+1}の勝ち！`;
+ $("versusReselect").disabled=value.champion!=null||!!value.players[onlineUid]?.nextReady;$("versusReselect").textContent=value.champion!=null?"試合終了":value.players[onlineUid]?.nextReady?"相手の『次へ』を待っています…":"次のラウンドへ";if(screen!=="versus")show("versus");return}
+ if(!value.startAt){onlineStartAt=0;versusMotionKey="";versusRoundResult=null;$("versusReselect").disabled=true}
+ const bothBalls=ids.length===2&&ids.every(id=>value.players[id]?.ready===true);
+ const bothDirections=bothBalls&&ids.every(id=>{const d=value.players[id]?.direction;return d&&Number.isFinite(d.x)&&Number.isFinite(d.y)&&Math.hypot(d.x,d.y)>.5});
+ if(bothDirections&&value.startAt){onlineStartAt=value.startAt;ids.forEach((id,i)=>{versusPlayers[i].ballType=Math.max(0,Math.min(VERSUS_BALL_TYPES.length-1,Number(value.players[id].ball)||0));versusPlayers[i].hp=versusMaxHp(versusPlayers[i].ballType);versusPlayers[i].direction=value.players[id].direction});if(screen!=="versus")show("versus");return}
+ if(bothBalls){if(screen!=="versusDirection")show("versusDirection");drawVersusAim();$("versusAimConfirm").disabled=!!onlineDirection;$("versusDirectionStatus").textContent=onlineDirection?"方向を決定しました。相手を待っています…":"マウスで狙い、『この方向で決定』を押してください。";return}
+ if(ids.length===2){if(screen!=="versusChoose")show("versusChoose");renderVersusChoices();if(onlineReady)$("versusChooseInfo").textContent="決定しました。相手を待っています…";}else if(screen==="versus"||screen==="versusDirection"||screen==="versusChoose")show("online");
+ onlineStatus(ids.length===1?"参加しました。相手を待っています…":onlineReady?"ボール決定済み。相手を待っています…":"2人が接続しました。ボールを選んでください！");$("onlineChoose").classList.toggle("hidden",ids.length!==2||onlineReady);
+}
+async function refreshOnlineRoom(){const room=onlineRoom;if(!room||!onlineDb)return;try{const {data,error}=await onlineDb.from("battle_rooms").select("room_code,player1_id,player2_id,game_state").eq("room_code",room).maybeSingle();if(room!==onlineRoom)return;if(error)throw error;renderOnlineRoom(data)}catch(e){if(room!==onlineRoom)return;onlineStatus("同期エラー: "+e.message);console.error("Supabaseルーム同期失敗",e)}}
+async function onlineConnect(){const room=$("onlineRoomNumber").value.trim();if(!/^\d{6}$/.test(room)){onlineStatus("6桁の数字を入力してください");return}$("onlineJoin").disabled=true;onlineStatus("Supabaseに接続中…");try{await loadSupabaseSdk();if(!onlineDb)onlineDb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});let {data:{user}}=await onlineDb.auth.getUser();if(!user){const {data,error}=await onlineDb.auth.signInAnonymously();if(error)throw error;user=data.user}onlineUid=user.id;
+ let {data:mine}=await onlineDb.from("battle_rooms").select("room_code").eq("room_code",room).maybeSingle();if(!mine){const {error}=await onlineDb.from("battle_rooms").insert({room_code:room,player1_id:onlineUid});if(error&&error.code!=="23505")throw error}
+ await onlineRpc("join_battle_room",{p_room_code:room});
+ const {data:row,error}=await onlineDb.from("battle_rooms").select("room_code,player1_id,player2_id,game_state").eq("room_code",room).maybeSingle();if(error)throw error;const priorState=parseRoom(row);if(priorState&&(priorState.champion!==null||priorState.roundResult!==null)){onlineStatus("このルームの対戦は終了しています。『新しいルームを作成』を押してください。");return}if(!row||![row.player1_id,row.player2_id].includes(onlineUid)){onlineStatus("満員か、参加できないルームです。別の番号を試してください");return}
+ if(onlineUnsub)onlineUnsub();onlineRoom=room;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;$("versusCountdown").textContent="";resetVersusChoices();
+ const channel=onlineDb.channel("battle-"+room).on("postgres_changes",{event:"*",schema:"public",table:"battle_rooms",filter:"room_code=eq."+room},()=>refreshOnlineRoom()).subscribe();
+ const timer=setInterval(()=>{if(onlineRoom===room)refreshOnlineRoom();else clearInterval(timer)},1500);
+ onlineUnsub=()=>{clearInterval(timer);onlineDb.removeChannel(channel)};renderOnlineRoom(row);
+ }catch(err){onlineStatus("接続エラー: "+err.message)}finally{$("onlineJoin").disabled=false}}
+async function onlineLeave(){const room=onlineRoom;onlineRoom=null;onlineRoomData=null;onlineSeat=-1;onlineReady=false;onlineDirection=null;onlineStartAt=0;lastCountdown=999;versusMotionKey="";if(onlineUnsub){onlineUnsub();onlineUnsub=null}$("onlineChoose").classList.add("hidden");onlineStatus("退出しました");if(room&&onlineDb){try{await onlineRpc("battle_action",{p_room_code:room,p_action:"leave",p_payload:{}})}catch(e){console.warn("退出通知を保存できませんでした",e);if(!onlineRoom)onlineStatus("画面から退出しました（サーバーへの退出通知に失敗: "+e.message+"）")}}}
+function resetVersusChoices(){versusSelected[0]=-1;versusSelected[1]=-1;}
+function drawVersusAim(){
+ const c=$("versusAimBoard");if(!c)return;const ctx=c.getContext("2d");
+ // 対戦フィールドと同じ迷路を表示し、自分のボールだけに照準を描く。
+ const source=$("versusBoard");drawVersusBoard();ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(source,0,0);
+ const p=versusPlayers[Math.max(0,onlineSeat)];const sx=24+(p.col+.5)*54,sy=30+(p.row+.5)*54;
+ ctx.strokeStyle="#ffe782";ctx.lineWidth=3;ctx.setLineDash([8,6]);ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+aimVector.x*190,sy+aimVector.y*190);ctx.stroke();ctx.setLineDash([]);
+}
+function aimPointer(e,confirm){if(!onlineRoom||onlineSeat<0||!onlineReady||onlineDirection||screen!=="versusDirection")return;
+ const c=$("versusAimBoard"),r=c.getBoundingClientRect(),x=(e.clientX-r.left)*c.width/r.width,y=(e.clientY-r.top)*c.height/r.height;
+ const p=versusPlayers[onlineSeat],sx=24+(p.col+.5)*54,sy=30+(p.row+.5)*54,dx=x-sx,dy=y-sy,len=Math.hypot(dx,dy);if(len<12)return;
+ aimVector={x:dx/len,y:dy/len};drawVersusAim();if(confirm)confirmAim();
+}
+$("versusAimBoard").addEventListener("pointermove",e=>aimPointer(e,false));
+$("versusAimBoard").addEventListener("pointerdown",e=>aimPointer(e,false));
+$("versusAimConfirm").onclick=()=>confirmAim();
+async function confirmAim(){if(!onlineRoom||onlineDirection||!onlineReady||screen!=="versusDirection")return;
+ $("versusAimConfirm").disabled=true;$("versusDirectionStatus").textContent="発射方向を送信しています…";
+ try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"direction",p_payload:{direction:aimVector}});onlineDirection={...aimVector};$("versusDirectionStatus").textContent="方向を決定しました。相手を待っています…"}
+ catch(e){$("versusDirectionStatus").textContent="送信エラー: "+e.message}
+ finally{$("versusAimConfirm").disabled=!!onlineDirection}
+}
+function renderVersusChoices(){
+ const turn=onlineSeat<0?0:onlineSeat,wrap=$("versusChoices1");$("versusChoices2").classList.add("hidden");wrap.replaceChildren();
+ $("versusStart").classList.add("hidden");$("versusConfirm").classList.remove("hidden");
+ $("versusChooseTitle").textContent=`🔒 プレイヤー${turn+1}（あなた）のボールを選択` ;
+ if(!Array.isArray(VERSUS_BALL_TYPES)||VERSUS_BALL_TYPES.length===0){$("versusChooseInfo").textContent="ボール一覧の読み込みに失敗しました";return;}
+ VERSUS_BALL_TYPES.forEach((ball,i)=>{
+  const b=document.createElement("button");b.type="button";b.className="versus-choice"+(versusSelected[turn]===i?" chosen":"");
+  const orb=document.createElement("span");orb.className="versus-orb";orb.style.background=ball.color;orb.textContent=ball.symbol;
+  const title=document.createElement("strong");title.textContent=ball.name;const info=document.createElement("small");info.textContent=`HP ${versusMaxHp(i)}｜${ball.desc}`;
+  b.append(orb,title,info);b.onclick=()=>{if(onlineReady)return;versusSelected[turn]=i;renderVersusChoices()};b.disabled=onlineReady;wrap.appendChild(b)
+ });
+ $("versusChooseInfo").textContent=onlineReady?"決定しました。相手を待っています…":"相手の選択は、両方が決定するまで表示されません。";
+ $("versusConfirm").textContent="🔒 このボールで決定";$("versusConfirm").disabled=onlineReady||versusSelected[turn]<0;
+}
+$("versusConfirm").onclick=async()=>{
+ if(!onlineRoom||onlineSeat<0||onlineReady)return;
+ const choice=versusSelected[onlineSeat];if(choice<0)return;
+ $("versusConfirm").disabled=true;
+ try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"choose",p_payload:{ball:choice}});onlineReady=true;renderVersusChoices()}catch(e){$("versusChooseInfo").textContent="送信失敗: "+e.message;$("versusConfirm").disabled=false}
+};
+const VERSUS_MAX_HP=15; // 標準HP（ボールごとの最大HPはversusMaxHpで設定）
+const VERSUS_BALL_HP=[14, 14, 13, 17, 14, 13, 15, 16, 13, 14, 12, 18, 14, 13, 14, 13, 15, 14, 13, 15, 14, 14, 16, 15, 19, 14, 15, 16, 15, 18, 14, 13, 15, 17, 12, 14, 13, 15, 13, 15];
+function versusMaxHp(index){return VERSUS_BALL_HP[Math.max(0,Math.min(39,index|0))]||15;}
+const versusPlayers=[{col:0,row:9,hp:VERSUS_MAX_HP,color:"#46c7ff",label:"1",ballType:0},{col:7,row:0,hp:VERSUS_MAX_HP,color:"#ff7777",label:"2",ballType:0}];
+let versusMotionKey="",versusMotionTime=0,versusMotionState=null;
+let versusRoundResult=null,versusCollisionCooldown=-1,versusRoundSubmitting=false;
+// 壁トラップは端末ごとに同じ衝突順序から生成する（Math.randomを使わない）。
+const VERSUS_WALL_TRAPS={poison:{chance:20,damage:2,label:"☠",color:"#9ef35a"},cactus:{chance:30,damage:1,label:"✹",color:"#91e47d"},burn:{chance:25,damage:2,label:"✦",color:"#ff9b54"},slow:{chance:30,slow:.65,label:"❄",color:"#b4eeff"},blackhole:{chance:25,slow:.6,label:"◎",color:"#aa91ed"},gold:{chance:15,damage:3,label:"✹",color:"#ffd34a"},pearl:{chance:20,heal:2,label:"✧",color:"#f7ebda"},tornado:{chance:25,boost:1.3,label:"➤",color:"#9de0bf"}};
+function versusTrapRoll(owner,count,axis){let n=Math.imul((count+1)*131+(owner+1)*997+(axis+1)*719,2654435761)>>>0;n^=n>>>16;n=Math.imul(n,2246822519)>>>0;return (n>>>8)%100;}
+function updateVersusScore(){
+ const wins=onlineRoomData?.wins||[0,0];
+ $("versusScore").textContent=`🔵 ${wins[0]||0}勝　―　${wins[1]||0}勝 🔴　（5勝先取）`;
+}
+async function reportVersusResult(winner){if(onlineSeat!==0||versusRoundSubmitting||!onlineRoom||!onlineDb)return;versusRoundSubmitting=true;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"result",p_payload:{winner}});await refreshOnlineRoom()}catch(e){console.warn("対戦結果の保存に失敗",e)}finally{versusRoundSubmitting=false}}
+async function nextVersusRound(){if(!onlineRoom||!onlineDb||!onlineRoomData?.roundResult||onlineRoomData.champion!=null)return;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"next",p_payload:{}});await refreshOnlineRoom()}catch(e){onlineStatus("次のラウンドの準備に失敗: "+e.message)}}
+
+let versusTraps=[];
+function simulateVersusMotion(){
+ if(!onlineStartAt||Date.now()<onlineStartAt)return null;
+ const key=onlineStartAt+":"+versusPlayers.map(p=>JSON.stringify(p.direction)).join(":");
+ if(key!==versusMotionKey){versusMotionKey=key;versusTraps=[];versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*150*versusSpeed(p.ballType),vy:(p.direction?.y||0)*150*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
+ const target=Math.min(180,(Date.now()-onlineStartAt)/1000),step=1/120;
+ // 同じ開始時刻と方向から双方の端末で同じ軌道を計算する。
+ while(versusMotionTime+step<=target&&versusMotionState){
+  for(let bi=0;bi<versusMotionState.length;bi++){const b=versusMotionState[bi];const nx=b.x+b.vx*step,ny=b.y+b.vy*step;
+   function blocked(x,y){if(x<24+12||x>24+8*54-12||y<30+12||y>30+10*54-12)return true;
+    for(const ox of [-11,11])for(const oy of [-11,11]){const col=Math.floor((x+ox-24)/54),row=Math.floor((y+oy-30)/54);if(row>=0&&row<10&&col>=0&&col<8&&VERSUS_MAZE[row][col]==="#")return true}return false}
+   const wallX=blocked(nx,b.y),wallY=blocked(b.x,ny);
+   if(wallX)b.vx=-b.vx;else b.x=nx;
+   if(wallY)b.vy=-b.vy;else b.y=ny;
+   // 壁に衝突したときに一定確率で、壁の手前に罠を設置する。
+   const skill=versusAbility(versusPlayers[bi].ballType),cfg=VERSUS_WALL_TRAPS[skill];
+   if(cfg&&(wallX||wallY)){
+    b.wallHits++;
+    if(versusTrapRoll(bi,b.wallHits,wallX?0:1)<cfg.chance){
+     const tx=Math.max(42,Math.min(24+8*54-18,b.x));
+     const ty=Math.max(48,Math.min(30+10*54-18,b.y));
+     versusTraps.push({owner:bi,x:tx,y:ty,created:versusMotionTime,expires:versusMotionTime+8,used:false,skill});
+     if(versusTraps.length>32)versusTraps.shift();
+    }
+   }
+  }
+  // 設置した罠は8秒で消える。設置者には当たらず、敵だけに効果がある。
+  for(const trap of versusTraps){
+   if(trap.used||versusMotionTime>trap.expires||versusMotionTime-trap.created<.2)continue;
+   const victim=versusMotionState[1-trap.owner],cfg=VERSUS_WALL_TRAPS[trap.skill];
+   if(Math.hypot(victim.x-trap.x,victim.y-trap.y)<23){
+    trap.used=true;
+    if(cfg.damage)victim.hp=Math.max(0,victim.hp-cfg.damage);
+    if(cfg.slow){victim.vx*=cfg.slow;victim.vy*=cfg.slow}
+    if(cfg.boost){victim.vx*=cfg.boost;victim.vy*=cfg.boost}
+    if(cfg.heal)victim.hp=Math.min(versusMaxHp(versusPlayers[1-trap.owner].ballType),victim.hp+cfg.heal);
+   }
+  }
+  versusTraps=versusTraps.filter(t=>!t.used&&versusMotionTime<=t.expires);
+  // 衝突時は双方に1ダメージ。連続接触で一瞬にHPがなくならないよう間隔を空ける。
+  const a=versusMotionState[0],b=versusMotionState[1];
+  if(Math.hypot(a.x-b.x,a.y-b.y)<34 && versusMotionTime-versusCollisionCooldown>.65){
+   versusCollisionCooldown=versusMotionTime;
+   const dx=a.x-b.x,dy=a.y-b.y,len=Math.hypot(dx,dy)||1;
+   const avx=a.vx,avy=a.vy;a.vx=b.vx;a.vy=b.vy;b.vx=avx;b.vy=avy;
+   a.x+=dx/len*2;b.x-=dx/len*2;a.y+=dy/len*2;b.y-=dy/len*2;
+   // 40種類それぞれの固有攻撃を同時判定。両端末で同じ結果になる決定的な処理。
+   a.hits++;b.hits++;
+   const typeA=versusPlayers[0].ballType,typeB=versusPlayers[1].ballType;
+   const skillA=versusAbility(typeA),skillB=versusAbility(typeB);
+   const damageToB=versusDefense(typeB,b.hits,versusAttack(typeA,a.hits));
+   const damageToA=versusDefense(typeA,a.hits,versusAttack(typeB,b.hits));
+   let takenA=damageToA,takenB=damageToB;
+   if(skillA==="crystal")takenB+=Math.floor(damageToA/2);
+   if(skillB==="crystal")takenA+=Math.floor(damageToB/2);
+   if(skillA==="cactus"&&damageToA>0)takenB++;
+   if(skillB==="cactus"&&damageToB>0)takenA++;
+   if(skillA==="magma")takenA++;
+   if(skillB==="magma")takenB++;
+   a.hp=Math.max(0,a.hp-takenA);b.hp=Math.max(0,b.hp-takenB);
+   const healA=skillA==="leaf"||skillA==="emerald"?2:skillA==="heal"||skillA==="moon"?1:skillA==="phoenix"&&a.hp<=5?2:0;
+   const healB=skillB==="leaf"||skillB==="emerald"?2:skillB==="heal"||skillB==="moon"?1:skillB==="phoenix"&&b.hp<=5?2:0;
+   if(a.hp>0)a.hp=Math.min(versusMaxHp(typeA),a.hp+healA);
+   if(b.hp>0)b.hp=Math.min(versusMaxHp(typeB),b.hp+healB);
+   if(["slow","blizzard","blackhole","sapphire"].includes(skillA)){b.vx*=.83;b.vy*=.83}
+   if(["slow","blizzard","blackhole","sapphire"].includes(skillB)){a.vx*=.83;a.vy*=.83}
+   // 減速しすぎて停止しないように最低速度を維持する。
+   for(const ball of [a,b]){const speed=Math.hypot(ball.vx,ball.vy);if(speed<75&&speed>0){ball.vx*=75/speed;ball.vy*=75/speed}}
+  }
+  versusMotionTime+=step;
+  if(a.hp<=0||b.hp<=0){
+   versusRoundResult=a.hp<=0&&b.hp<=0?-1:a.hp<=0?1:0;
+   break;
+  }
+ }
+ versusMotionState.forEach((b,i)=>versusPlayers[i].hp=b.hp);
+ if(versusRoundResult!==null&&!onlineRoomData?.roundResult)reportVersusResult(versusRoundResult);
+ return versusMotionState;
+}
+function drawVersusBoard(){
+ for(let i=0;i<versusPlayers.length;i++)$("versusHp"+(i+1)).textContent=`${versusPlayers[i].hp} / ${versusMaxHp(versusPlayers[i].ballType)} HP`;
+ const c=$("versusBoard"),x=c.getContext("2d"),cell=54,left=24,top=30;
+ x.clearRect(0,0,c.width,c.height);
+ const bg=x.createLinearGradient(0,0,0,c.height);bg.addColorStop(0,"#0d2444");bg.addColorStop(1,"#091528");x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);
+ for(let row=0;row<10;row++)for(let col=0;col<8;col++){
+  const px=left+col*cell,py=top+row*cell;
+  x.fillStyle=(row+col)%2?"#183859":"#204366";x.fillRect(px+1,py+1,cell-2,cell-2);
+  if(VERSUS_MAZE[row][col]==="#"){
+   // 通常ステージの鉄ブロックと同じ外観（角丸・縁取り・中央の▦）。
+   x.save();
+   x.fillStyle="#34445b";x.strokeStyle="#8c9aaa";x.lineWidth=2;
+   x.beginPath();x.roundRect(px+2,py+2,cell-4,cell-4,6);x.fill();x.stroke();
+   x.fillStyle="#ffffff";x.font="bold 17px system-ui";
+   x.textAlign="center";x.textBaseline="alphabetic";
+   x.fillText("▦",px+cell/2,py+cell/2+7);
+   x.restore();
+  }
+ }
+ const moving=simulateVersusMotion();updateVersusScore();
+ if(moving)for(const trap of versusTraps){
+  const cfg=VERSUS_WALL_TRAPS[trap.skill];if(!cfg)continue;
+  x.save();x.globalAlpha=.88;x.fillStyle=cfg.color;x.strokeStyle="#10243c";x.lineWidth=2;
+  x.beginPath();x.arc(trap.x,trap.y,12,0,Math.PI*2);x.fill();x.stroke();
+  x.fillStyle="#17243b";x.font="bold 15px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(cfg.label,trap.x,trap.y);x.restore();
+ }
+ for(const {col,row,color,label,hp,ballType} of versusPlayers){
+  const index=Number(label)-1,cx=moving?moving[index].x:left+(col+.5)*cell,cy=moving?moving[index].y:top+(row+.5)*cell;
+  if(screen==="versusDirection"&&index!==onlineSeat)continue;
+  x.beginPath();x.arc(cx,cy,17,0,Math.PI*2);x.fillStyle=VERSUS_BALL_TYPES[ballType].color;x.fill();x.strokeStyle=color;x.lineWidth=3;x.stroke();
+  x.fillStyle="#10243c";x.font="bold 17px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(VERSUS_BALL_TYPES[ballType].symbol,cx,cy);
+  if(onlineStartAt&&Date.now()>=onlineStartAt&&versusPlayers.some(p=>p.direction)){
+    
+  }
+  // ボールの上に体力ゲージを表示。対戦処理を追加した際は hp を更新する。
+  const bw=44,bh=7,bx=cx-bw/2,by=cy-30;
+  x.fillStyle="#19222f";x.fillRect(bx-1,by-1,bw+2,bh+2);
+  x.fillStyle=hp>versusMaxHp(ballType)*.5?"#55e18a":hp>versusMaxHp(ballType)*.25?"#ffd166":"#ff6868";
+  x.fillRect(bx,by,bw*Math.max(0,Math.min(1,hp/versusMaxHp(ballType))),bh);
+ }
+}
+function renderSelect(){const d=data();$("progressText").textContent=`👤 ${playerName(d)} ／ 🪙 所持コイン：${Number(d.coins)||0}枚 ／ 💎 所持ジェム：${Number(d.gems)||0}個 ／ 到達ステージ ${d.unlocked} ／ 星 ${starsTotal()} / 150`;const el=$("stages");el.replaceChildren();for(let n=1;n<=50;n++){const b=document.createElement("button");b.disabled=n>d.unlocked;b.innerHTML=`${n}<br><small>${d.stars[n-1]>0?"★".repeat(d.stars[n-1])+"☆".repeat(3-d.stars[n-1]):n===d.unlocked?"挑戦可能":"🔒"}</small>`;b.onclick=()=>startStage(n);el.appendChild(b)}}
+function renderSkins(){const total=starsTotal(),el=$("skins");el.replaceChildren();$("skinInfo").textContent=`星 ${total} / 150 ・ 全${SKINS.length}種類 ・ 5個ごとに解放 ・ 現在のダメージ ${skinPower().damage} ・ 発射ボール ${skinPower().balls}個`;SKINS.forEach(([name,color],i)=>{const need=i*5,b=document.createElement("button");b.disabled=total<need;b.innerHTML=`<span class="skinball" style="background:${color};color:${color}"></span>${name}<br><small>${total<need?`星 ${need} 個で解放`:data().skin===i?`使用中・攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`:`攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`}</small>`;b.onclick=()=>{data().skin=i;data().activeCoinSkin=-1;data().activeGemSkin=-1;persist();renderSkins()};el.appendChild(b)});
+ const coins=$('coinSkins');coins.replaceChildren();
+ COIN_SKINS.forEach((c,i)=>{const owned=data().coinSkins.includes(i),active=data().activeCoinSkin===i,b=document.createElement('button');
+ b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">🪙 ${c.price.toLocaleString()}コイン<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
+ b.disabled=active||(!owned&&data().coins<c.price);
+ b.onclick=()=>{if(!owned){if(data().coins<c.price)return;data().coins-=c.price;data().coinSkins.push(i)}data().activeCoinSkin=i;data().activeGemSkin=-1;persist();renderSkins()};coins.appendChild(b)});
+ const gems=$('gemSkins');gems.replaceChildren();
+ GEM_SKINS.forEach((c,i)=>{const owned=data().gemSkins.includes(i),active=data().activeGemSkin===i,b=document.createElement('button');
+ b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">💎 ${c.price.toLocaleString()}ジェム<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
+ b.disabled=active||(!owned&&data().gems<c.price);
+ b.onclick=()=>{if(!owned){if(data().gems<c.price)return;data().gems-=c.price;data().gemSkins.push(i)}data().activeGemSkin=i;data().activeCoinSkin=-1;persist();renderSkins()};gems.appendChild(b)});
+ $('skinInfo').textContent+=` ・ 🪙 ${data().coins.toLocaleString()}コイン ・ 💎 ${data().gems.toLocaleString()}ジェム`;
+}
+function renderSettings(){const s=store.settings;$("guideSetting").checked=s.guide;$("brightnessSetting").value=s.brightness;$("effectsSetting").value=s.effects;$("aimSetting").value=s.aim;$("gameSpeedSetting").value=s.gameSpeed||"1";$("soundVolumeSetting").value=s.soundVolume??100;$("soundVolumeValue").textContent=(s.soundVolume??100)+"%";$("soundStyleSetting").value=s.soundStyle||"normal"}
+for(const [id,key] of [["guideSetting","guide"],["brightnessSetting","brightness"],["effectsSetting","effects"],["aimSetting","aim"],["gameSpeedSetting","gameSpeed"]])$(id).addEventListener("change",e=>{store.settings[key]=key==="guide"?e.target.checked:e.target.value;persist()});
+$("soundVolumeSetting").addEventListener("input",e=>{store.settings.soundVolume=Number(e.target.value);$("soundVolumeValue").textContent=e.target.value+"%";updateSoundOutput();persist()});
+$("soundStyleSetting").addEventListener("change",e=>{store.settings.soundStyle=e.target.value;updateSoundOutput();persist()});
+$("soundPreviewButton").addEventListener("click",()=>{
+ enableBlockSound();
+ const type=$("soundPreviewType").value;
+ if(type==="button")playUIButtonSound();
+ else if(type==="launch")playBallLaunchSound();
+ else if(type==="wall")playCollisionSound("wall");
+ else if(type==="blockhit")playCollisionSound("block");
+ else if(type==="monsterhit")playCollisionSound("monster");
+ else if(type==="block")playBlockBreakSound();
+ else if(type==="bomb")playBombExplosionSound();
+ else if(type==="item")playItemPickupSound();
+ else if(type==="monster")playMonsterDefeatSound();
+ else if(type==="clear")playStageClearSound();
+});
+function rng(seed){let a=seed>>>0;return()=>{a+=0x6D2B79F5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(a,r){for(let i=a.length-1;i>0;i--){let j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startStage(n){closeModal();show("play");paused=false;keys.clear();const r=rng((Math.random()*4294967295)>>>0),cells=shuffle(Array.from({length:80},(_,i)=>i),r);
+const iron=Math.min(7,Math.floor(n/4)+1);
+ const monsterCount=1+Math.floor(r()*5),bossStage=n%5===0,itemCount=1+Math.floor(r()*5);
+ // 8×10マスを超えないよう、後半ステージのブロック数に上限を設ける。
+ const count=Math.min(n+4,80-iron-monsterCount-(bossStage?1:0)-itemCount);
+ const explosives=Math.max(1,Math.floor(count/7));
+let blocks=[],items=[];
+// 空きマスから条件に合う位置を取り出す（配置の重複を防ぐ）。
+function takeCell(predicate){const pos=cells.findIndex(idx=>predicate(Math.floor(idx/COLS)));if(pos<0)throw new Error("配置できるマスがありません");return cells.splice(pos,1)[0]}
+// 普通のモンスターとボスは必ず上から5段以内（行0～4）に出現。
+let monsters=[];
+for(let i=0;i<monsterCount+(bossStage?1:0);i++){
+ const idx=takeCell(row=>row<5),boss=bossStage&&i===monsterCount;
+ const moving=(!boss&&i===0)||(boss&&(n===25||n===50));
+  monsters.push({id:i,c:moving?0:idx%COLS,row:Math.floor(idx/COLS),
+    type:boss?"boss":moving?"moving":"monster",hp:boss?Math.ceil(n*2.5):n,
+    alive:true,dir:1});
+}
+// 鉄ブロックは最も手前（最下段・行9）に配置しない。
+for(let i=0;i<iron;i++){const idx=takeCell(row=>row<ROWS-1);blocks.push({id:count+i,c:idx%COLS,row:Math.floor(idx/COLS),type:"iron",hp:Infinity,alive:true})}
+// 強化ブロックは後半（ステージ26以降）の通常ステージにのみ出現する。
+const armorCount=n>=26?Math.min(count-explosives,1+Math.floor((n-26)/8)):0;
+// コインブロックは序盤から必ず登場。後半ほど少し増える。
+const coinCount=Math.min(Math.max(0,count-explosives-armorCount-1),n<11?2:n<26?3:4);
+for(let i=0;i<count;i++){const idx=takeCell(()=>true);blocks.push({id:i,c:idx%COLS,row:Math.floor(idx/COLS),type:i<explosives?"bomb":i<explosives+armorCount?"armor":i<explosives+armorCount+coinCount?"coin":"normal",hp:n,alive:true})}
+for(let i=0;i<itemCount;i++){const idx=takeCell(()=>true);items.push({id:i,c:idx%COLS,row:Math.floor(idx/COLS),type:["damage","speed","split","bounce"][Math.floor(r()*4)]})}
+// 星の基準は発射した球の数ではなく「何回発射したか」。
+// 壁・鉄ブロック・他のブロックでの反射によって、1発射中に複数回当たることを考慮する。
+// ステージ後半のブロック密度が高いほど反射回数が増えるため、必要発射回数も抑える。
+const normalBlocks=blocks.filter(b=>b.type==="normal");
+const bombBlocks=blocks.filter(b=>b.type==="bomb");
+const armorBlocks=blocks.filter(b=>b.type==="armor");
+const totalDurability=normalBlocks.reduce((sum,b)=>sum+b.hp,0)+armorBlocks.reduce((sum,b)=>sum+b.hp*2,0)
+ +bombBlocks.reduce((sum,b)=>sum+b.hp*.55,0)
+ +monsters.reduce((sum,m)=>sum+m.hp,0);
+const occupiedRatio=(blocks.length+monsters.length)/80;
+const upperDensity=(blocks.filter(b=>b.row<5).length+monsters.length)/40;
+// 反射の効果は密度だけでなく、壊れない鉄ブロックによっても上がる。
+const estimatedHitsPerShot=3.5+occupiedRatio*10+upperDensity*3+iron*.38;
+// 爆弾の連鎖やアイテムで削れる分を少し差し引く。
+const estimatedWork=totalDurability*(.90-Math.min(.12,bombBlocks.length*.012));
+const baseShots=estimatedWork/estimatedHitsPerShot;
+// 後半ほど基準を甘くしない。反射が増えるぶんを上の計算に含めている。
+const lateFactor=Math.max(0,Math.min(1,(n-20)/30)); // ステージ21以降は後半ほど星の発射回数を厳しくする。
+ const three=Math.max(2,Math.floor(baseShots*(.64-.35*lateFactor)));
+const two=three+Math.max(2,Math.ceil(baseShots*(.22-.12*lateFactor)));
+game={n,blocks,monsters,items,balls:[],effects:[],shots:0,aim:-Math.PI/2,launchX:W/2,nextX:W/2,waiting:true,three,two,cleared:false};
+$("stageTitle").textContent=`STAGE ${n}`;updateStats();drawGame()}
+// ミニゲーム：モンスターなし。各発射終了時に既存ブロックが1段下がり、新しいブロックが1個現れる。
+// ミニゲームでは毎ターン3〜8個のブロックを追加。耐久値は発射する球数と同じ。
+function miniSpawn(){
+ const g=game;
+ const available=Array.from({length:COLS},(_,c)=>c).filter(c=>!g.blocks.some(b=>b.alive&&b.row===0&&b.c===c)&&!g.items.some(item=>item.row===0&&item.c===c));
+ const count=Math.min(available.length,3+Math.floor(Math.random()*6));
+ const hp=g.miniBalls;
+ for(let i=0;i<count;i++){
+  const index=Math.floor(Math.random()*available.length);
+  const c=available.splice(index,1)[0];
+  g.blocks.push({id:g.miniId++,c,row:0,type:"normal",hp,alive:true});
+ }
+}
+// ミニゲームでは通常アイテムも毎ターン出現し、ブロックとともに下降する。
+function miniSpawnItems(){
+ const g=game;
+ const free=Array.from({length:COLS},(_,c)=>c).filter(c=>
+  !g.blocks.some(b=>b.alive&&b.row===0&&b.c===c)&&
+  !g.items.some(item=>item.row===0&&item.c===c));
+ const types=["miniBall","damage","speed","bounce","split"];
+ const count=Math.min(free.length,1+Math.floor(Math.random()*2));
+ for(let i=0;i<count;i++){
+  const c=free.splice(Math.floor(Math.random()*free.length),1)[0];
+  const type=i===0&&g.miniTurns%2===0?"miniBall":types[Math.floor(Math.random()*types.length)];
+  g.items.push({id:"miniItem"+g.miniId++,type,c,row:0});
+ }
+}
+function renderRanking(){
+ const rows=$("rankingRows");rows.replaceChildren();
+ $("rankingSummary").textContent=`登録記録：${store.miniRanking.length}件 ／ 最高記録：${store.miniRanking[0]?.score??"なし"}回`;
+ if(!store.miniRanking.length){const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=4;td.textContent="まだ記録がありません。ミニゲームに挑戦しよう！";td.style.padding="18px";tr.appendChild(td);rows.appendChild(tr);return}
+ store.miniRanking.forEach((r,i)=>{const tr=document.createElement("tr");[`${i+1}位`,r.name,`${r.score}回`,r.date].forEach(t=>{const td=document.createElement("td");td.textContent=t;td.style.padding="8px 5px";td.style.borderBottom="1px solid #416d9b";tr.appendChild(td)});rows.appendChild(tr)})
+}
+function recordMiniRanking(score){
+ const name=playerName(data());
+ const entry={name,slot,score:Math.max(0,Math.floor(score)),date:new Date().toLocaleDateString("ja-JP")};
+ store.miniRanking.push(entry);store.miniRanking.sort((a,b)=>b.score-a.score);store.miniRanking=store.miniRanking.slice(0,100);persist();
+ const rank=store.miniRanking.indexOf(entry);return rank>=0?rank+1:null;
+}
+function startMiniGame(){
+ closeModal();show("play");paused=false;keys.clear();
+ game={mini:true,n:0,miniTurns:0,miniId:0,miniBalls:1,blocks:[],monsters:[],items:[],balls:[],effects:[],shots:0,aim:-Math.PI/2,launchX:W/2,nextX:W/2,waiting:true,three:0,two:0,cleared:false};
+ miniSpawnItems();miniSpawn();$("stageTitle").textContent="ミニゲーム版";updateStats();drawGame();
+}
+function miniTurnEnd(){
+ const g=game;g.miniTurns++;
+ // 15回を初期記録とし、自己ベストを1回更新するたびに1コイン。
+ if(g.miniTurns>store.miniBest){
+  const gained=g.miniTurns-store.miniBest;
+  store.miniBest=g.miniTurns;
+  store.miniCoins+=gained*500;
+  persist();
+  toast(`自己ベスト更新！ +${gained*500}コイン`);
+ }
+ for(const b of g.blocks)if(b.alive)b.row++;
+ for(const item of g.items)item.row++;
+ g.items=g.items.filter(item=>item.row<ROWS-1);
+ if(g.blocks.some(b=>b.alive&&b.row>=ROWS)){
+  g.cleared=true;g.waiting=true;updateStats();
+  const rank=recordMiniRanking(g.miniTurns);
+  modal("ミニゲーム終了",`<p>ブロックが最下段を越えました！</p><p>耐えた回数：${g.miniTurns}回</p><p>自己ベスト：${store.miniBest}回</p><p>所持コイン：${store.miniCoins}枚</p><p>ランキング：${rank?`${rank}位`:"100位圏外"}</p>`,[["もう一度",startMiniGame],["ランキングを見る",()=>{closeModal();show("ranking")}],["タイトルへ",()=>{closeModal();show("home")}]]) ;return;
+ }
+ miniSpawnItems();
+ miniSpawn();
+ g.waiting=true;g.manualTarget=null;g.nextX=g.launchX;updateStats();
+}
+function updateStats(){if(!game)return;const g=game,remaining=g.blocks.filter(b=>b.alive&&b.type!=="iron"&&b.type!=="coin").length,remainingMonsters=g.monsters.filter(m=>m.alive).length;$("stats").innerHTML=g.mini?`ミニゲーム版<br>耐えた回数：${g.miniTurns}<br>自己ベスト：${store.miniBest}回<br>コイン：${store.miniCoins}枚<br>残りブロック：${remaining}<br>発射回数：${g.shots}<br>発射時の球：${g.miniBalls}個<br>基本ダメージ：1`:`残りブロック：${remaining}<br>残りモンスター：${remainingMonsters}<br>発射回数：${g.shots}<br>星3個：${g.three}回以内<br>星2個：${g.two}回以内<br>星1個：クリアすれば獲得<br>発射時の球：${skinPower().balls}個<br>基本ダメージ：${skinPower().damage}<br>所持コイン：${data().coins}枚<br>飛行中の球：${g.balls.length}${MANUAL_KINDS.has(skinPower().kind)?`<br>手動能力：${g.manualUsed?"使用済み":g.manualTarget?"クリックで対象指定":g.waiting?"発射後にスペース":"スペースで発動"}`:""}`;$("saveBtn").disabled=!!g.mini||!!g.custom||!g.waiting||g.cleared}
+function saveManual(){if(!game||game.mini||!game.waiting||game.cleared){toast("ステージ開始時かクリア時のみセーブできます");return}data().checkpoint=game.n;persist();toast("進行状況を保存しました（ステージ開始地点から再開）")}
+function shoot(){const g=game;if(!g||!g.waiting||paused||screen!=="play"||!$("overlay").classList.contains("hidden"))return;playBallLaunchSound();g.shots++;g.waiting=false;g.manualUsed=false;g.manualTarget=null;g.manualBarrier=0;g.manualTime=0;const speed=330,power=g.mini?{balls:g.miniBalls,damage:1}:skinPower();g.balls=[];g.volleyQueue=Array.from({length:power.balls},(_,i)=>({delay:i*.075,x:g.nextX,y:BASEY,vx:Math.cos(g.aim)*speed,vy:Math.sin(g.aim)*speed,damage:power.damage*(power.kind==="king"&&i===4?2:1)*(power.kind==="magic"?(1+Math.random()):1)+(power.kind==="royal"&&i%5===4?5:0),baseDamage:power.damage*(power.kind==="king"&&i===4?2:1)*(power.kind==="magic"?(1+Math.random()):1)+(power.kind==="royal"&&i%5===4?5:0),special:g.mini?null:(power.kind||null),shotIndex:i,angelUsed:false,gemHits:{},copyUsed:false,drillHits:{},starBoost:false,splitDone:false,hitCount:0,boomerangUsed:false,damageStacks:0,speedMul:1,bounceCharges:0,used:new Set(),r:7,history:[],manualStop:0,manualSpeed:0}));updateStats()}
+const MANUAL_KINDS=new Set(['manual_burst','manual_stop','manual_return','manual_target','manual_speed','manual_teleport','manual_barrier','manual_sniper','manual_reverse','manual_rewind']);
+function manualAction(){
+ const g=game;if(!g||g.mini||g.waiting||g.cleared||paused||screen!=='play'||!$('overlay').classList.contains('hidden')||g.manualUsed)return;
+ const kind=skinPower().kind;if(!MANUAL_KINDS.has(kind)||!g.balls.length)return;
+ if(kind==='manual_teleport'){toast('テレポートは飛行中に盤面をクリックすると発動します');return}
+ if(kind==='manual_sniper'){
+  if(kind==='manual_sniper'&&!g.monsters.some(m=>m.alive)){toast('攻撃できるモンスターがいません');return}
+  g.manualTarget=kind;toast(kind==='manual_teleport'?'移動先をクリックしてください':'攻撃するモンスターをクリックしてください');updateStats();return;
+ }
+ g.manualUsed=true;g.manualTarget=null;
+ if(kind==='manual_burst'){
+  for(const b of g.balls){for(const block of g.blocks)if(block.alive&&block.type!=='iron'&&Math.hypot(X0+(block.c+.5)*CW-b.x,Y0+(block.row+.5)*CH-b.y)<CW*1.6){block.hp-=2;if(block.hp<=0)destroy(block)}
+   for(const m of g.monsters)if(m.alive&&Math.hypot(X0+(m.c+.5)*CW-b.x,Y0+(m.row+.5)*CH-b.y)<CW*1.6){m.hp-=2;if(m.hp<=0)defeatMonster(m)}burst(b.x,b.y,'#ff9d5a')}
+ }else if(kind==='manual_stop'){for(const b of g.balls)b.manualStop=2}
+ else if(kind==='manual_return'){const b=g.balls[0];if(b){b.vx=-b.vx;b.vy=-b.vy}}
+ else if(kind==='manual_reverse'){for(const b of g.balls){b.vx=-b.vx;b.vy=-b.vy}}
+ else if(kind==='manual_target'){for(const b of g.balls){const enemies=g.monsters.filter(m=>m.alive);if(!enemies.length)continue;const m=enemies.reduce((a,z)=>Math.hypot(X0+(a.c+.5)*CW-b.x,Y0+(a.row+.5)*CH-b.y)<Math.hypot(X0+(z.c+.5)*CW-b.x,Y0+(z.row+.5)*CH-b.y)?a:z);const angle=Math.atan2(Y0+(m.row+.5)*CH-b.y,X0+(m.c+.5)*CW-b.x),speed=Math.hypot(b.vx,b.vy);b.vx=Math.cos(angle)*speed;b.vy=Math.sin(angle)*speed}}
+ else if(kind==='manual_speed'){for(const b of g.balls){b.vx*=2;b.vy*=2;b.manualSpeed=5}}
+ else if(kind==='manual_barrier'){g.manualBarrier=5}
+ else if(kind==='manual_rewind'){for(const b of g.balls){const h=b.history||[];if(h.length){const old=h[0];b.x=old.x;b.y=old.y;b.vx=old.vx;b.vy=old.vy;b.manualStop=0;b.history=[]}}}
+ toast('手動特殊能力を発動！');updateStats();
+}
+function manualClick(e){const g=game;if(!g||g.manualUsed||g.mini||g.waiting||g.cleared||paused||screen!=='play'||!$('overlay').classList.contains('hidden')||!g.balls.length)return false;
+ const target=skinPower().kind==='manual_teleport'?'manual_teleport':g.manualTarget;
+ if(!target)return false;
+ const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*W/rect.width,y=(e.clientY-rect.top)*H/rect.height;
+ if(target==='manual_teleport'){
+  if(x<0||x>W||y<0||y>H){toast('盤面内をクリックしてください');return true}
+  // 移動先がブロック内部だと衝突を繰り返すため、安全な空き位置へ移動する。
+   const occupied=(px,py,r)=>g.blocks.some(o=>o.alive&&px+r>X0+o.c*CW+2&&px-r<X0+(o.c+1)*CW-2&&py+r>Y0+o.row*CH+2&&py-r<Y0+(o.row+1)*CH-2)||g.monsters.some(o=>o.alive&&px+r>X0+o.c*CW+2&&px-r<X0+(o.c+1)*CW-2&&py+r>Y0+o.row*CH+2&&py-r<Y0+(o.row+1)*CH-2);
+   const radius=g.balls[0].r||7;
+   let destX=Math.max(radius,Math.min(W-radius,x)),destY=Math.max(radius,Math.min(H-radius,y));
+   if(occupied(destX,destY,radius)){
+     let found=false;
+     for(let dist=radius*2;dist<Math.max(W,H)&&!found;dist+=radius*2){
+       for(let i=0;i<24;i++){
+         const a=i*Math.PI/12,px=Math.max(radius,Math.min(W-radius,x+Math.cos(a)*dist)),py=Math.max(radius,Math.min(H-radius,y+Math.sin(a)*dist));
+         if(!occupied(px,py,radius)){destX=px;destY=py;found=true;break}
+       }
+     }
+     if(!found){toast('移動できる空き場所がありません');return true}
+   }
+   for(const b of g.balls){
+     b.x=Math.max(b.r,Math.min(W-b.r,destX));b.y=Math.max(b.r,Math.min(H-b.r,destY));
+     if(!Number.isFinite(b.vx)||!Number.isFinite(b.vy)||Math.hypot(b.vx,b.vy)<1){b.vx=Math.cos(g.aim)*330;b.vy=Math.sin(g.aim)*330}
+     if(b.history)b.history=[];
+   }
+   burst(destX,destY,'#c68cff')
+ }else if(target==='manual_sniper'){
+  const m=g.monsters.find(m=>m.alive&&x>=X0+m.c*CW&&x<=X0+(m.c+1)*CW&&y>=Y0+m.row*CH&&y<=Y0+(m.row+1)*CH);
+  if(!m){toast('モンスターをクリックしてください');return true}
+  m.hp-=10;burst(x,y,'#ffd1ff');if(m.hp<=0)defeatMonster(m);
+ }
+ g.manualUsed=true;g.manualTarget=null;toast('手動特殊能力を発動！');updateStats();return true;
+}
+function returnBalls(){
+ const g=game;
+ if(!g||screen!=="play"||paused||g.waiting||g.cleared||!$("overlay").classList.contains("hidden"))return;
+ // 飛行中の球と発射待ちの球をすべて回収する。次のフレームで通常のターン終了処理へ。
+ if(g.balls.length)g.launchX=Math.max(12,Math.min(W-12,g.balls[0].x));
+ g.balls=[];g.pending=[];g.volleyQueue=[];g.manualTarget=null;
+ $("returnBallsBtn").disabled=true;
+ toast("すべてのボールを回収しました");
+}
+function aimByPointer(e){if(!game||!game.waiting||paused)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*W/rect.width,y=(e.clientY-rect.top)*H/rect.height;let a=Math.atan2(y-BASEY,x-game.nextX);game.aim=Math.max(-Math.PI+.12,Math.min(-.12,a))}
+canvas.addEventListener("pointermove",aimByPointer);canvas.addEventListener("pointerdown",e=>{if(manualClick(e))return;aimByPointer(e);shoot()});
+document.addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight","Space","Escape"].includes(e.code)&&screen==="play")e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==="Escape"&&screen==="play"){if(!$("overlay").classList.contains("hidden"))closeModal();else pauseMenu();return}if(e.code==="Space"){if(game&&!game.waiting)manualAction();else shoot()}});
+document.addEventListener("keyup",e=>keys.delete(e.code));window.addEventListener("blur",()=>keys.clear());
+function circleRect(b,x,y,w,h){const px=Math.max(x,Math.min(b.x,x+w)),py=Math.max(y,Math.min(b.y,y+h));return(b.x-px)**2+(b.y-py)**2<=b.r*b.r}
+function reflect(b,x,y,w,h){const left=Math.abs((b.x+b.r)-x),right=Math.abs((x+w)-(b.x-b.r)),top=Math.abs((b.y+b.r)-y),bottom=Math.abs((y+h)-(b.y-b.r));const min=Math.min(left,right,top,bottom);if(min===left){b.x=x-b.r-.2;b.vx=-Math.abs(b.vx)}else if(min===right){b.x=x+w+b.r+.2;b.vx=Math.abs(b.vx)}else if(min===top){b.y=y-b.r-.2;b.vy=-Math.abs(b.vy)}else{b.y=y+h+b.r+.2;b.vy=Math.abs(b.vy)}}
+function burst(x,y,color){if(store.settings.effects==="low")return;const count=store.settings.effects==="high"?14:7;for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,s=35+Math.random()*95;if(game.effects.length<180)game.effects.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.4,color})}}
+function defeatMonster(m){if(!m.alive)return;m.alive=false;playMonsterDefeatSound();burst(X0+(m.c+.5)*CW,Y0+(m.row+.5)*CH,(m.type==="boss"||m.type==="movingBoss")?"#ff55e8":"#7bffdc")}
+function advanceMonsters(){
+ const g=game;
+ for(const m of g.monsters)if(m.alive){
+    m.row++;
+    // 左右移動型は一段下がるたび、左端から右端までの往復を継続する。
+  }
+ if(g.monsters.some(m=>m.alive&&m.row>=ROWS)){
+  g.cleared=true;g.waiting=true;updateStats();
+  showGameOverResult()
+ }
+}
+// ブロック破壊時の短い効果音（外部音声ファイル不要）
+let blockSoundContext=null,blockSoundLast=0,soundOutput=null,soundFilter=null;
+function updateSoundOutput(){
+ if(!blockSoundContext||!soundOutput||!soundFilter)return;
+ const volume=Math.max(0,Math.min(100,Number(store.settings.soundVolume??100)))/100;
+ soundOutput.gain.setTargetAtTime(volume,blockSoundContext.currentTime,0.012);
+ const style=store.settings.soundStyle||"normal";
+ soundFilter.type=style==="soft"?"lowpass":style==="bright"?"highshelf":"allpass";
+ soundFilter.frequency.setTargetAtTime(style==="soft"?950:style==="bright"?1800:1000,blockSoundContext.currentTime,0.015);
+ soundFilter.gain.setTargetAtTime(style==="bright"?6:0,blockSoundContext.currentTime,0.015);
+}
+function soundDestination(){return soundOutput||blockSoundContext.destination;}
+
+function enableBlockSound(){
+ try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+  if(!blockSoundContext){
+   blockSoundContext=new C();soundOutput=blockSoundContext.createGain();soundFilter=blockSoundContext.createBiquadFilter();
+   soundFilter.connect(soundOutput);soundOutput.connect(blockSoundContext.destination);updateSoundOutput();
+  }
+  if(blockSoundContext.state==="suspended")blockSoundContext.resume().catch(()=>{});
+ }catch(e){}
+}
+document.addEventListener("pointerdown",enableBlockSound,{passive:true});
+// すべてのボタン（後から生成されるボタンも含む）の決定音
+let uiSoundLast=-1,shootSoundLast=-1;
+function playUIButtonSound(){
+ enableBlockSound();const ctx=blockSoundContext;
+ if(!ctx||ctx.state==="closed")return;
+ const now=ctx.currentTime;if(now-uiSoundLast<0.045)return;uiSoundLast=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";
+  osc.frequency.setValueAtTime(740,now);
+  osc.frequency.exponentialRampToValueAtTime(1050,now+0.055);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.19,now+0.005);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.075);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());osc.start(now);osc.stop(now+0.08);
+ }catch(e){}
+}
+// キーボード操作やプログラムで作成したボタンにも対応
+// 無効化されたボタンは鳴らさない
+// マウス・タッチでは押した瞬間に再生（音声の自動再生制限にも対応）。
+// キーボード操作による click も再生する。
+let lastPointerButton=null,lastPointerButtonAt=0;
+function soundButtonFromEvent(e){
+ const target=e.target;
+ const btn=target&&target.closest&&target.closest('button,[role="button"],input[type="button"],input[type="submit"]');
+ return btn&&btn.id!=="soundPreviewButton"&&!btn.disabled&&btn.getAttribute("aria-disabled")!=="true"?btn:null;
+}
+document.addEventListener("pointerdown",e=>{
+ const btn=soundButtonFromEvent(e);
+ if(!btn)return;
+ lastPointerButton=btn;lastPointerButtonAt=performance.now();
+ playUIButtonSound();
+},true);
+document.addEventListener("click",e=>{
+ const btn=soundButtonFromEvent(e);
+ if(!btn)return;
+ if(btn===lastPointerButton&&performance.now()-lastPointerButtonAt<700)return;
+ playUIButtonSound();
+},true);
+function playBallLaunchSound(){
+ enableBlockSound();const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;if(now-shootSoundLast<0.08)return;shootSoundLast=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="triangle";
+  osc.frequency.setValueAtTime(280,now);
+  osc.frequency.exponentialRampToValueAtTime(690,now+0.11);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.12,now+0.009);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.16);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());osc.start(now);osc.stop(now+0.17);
+ }catch(e){}
+}
+
+document.addEventListener("keydown",enableBlockSound);
+function playBlockBreakSound(){
+ const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ if(now-blockSoundLast<0.035)return; // 連続破壊でも大音量にならないよう制限
+ blockSoundLast=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type="triangle";
+  osc.frequency.setValueAtTime(430,now);
+  osc.frequency.exponentialRampToValueAtTime(160,now+0.085);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.12,now+0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.095);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());
+  osc.start(now);osc.stop(now+0.1);
+ }catch(e){}
+}
+// 爆発ブロック専用の小さな爆発音。連鎖爆発時の音量を制限。
+let bombSoundLast=-1;
+function playBombExplosionSound(){
+ const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ if(now-bombSoundLast<0.07)return;
+ bombSoundLast=now;
+ try{
+  const duration=0.14;
+  const buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++){
+   const t=i/ctx.sampleRate;
+   data[i]=(Math.random()*2-1)*Math.pow(1-t/duration,2);
+  }
+  const noise=ctx.createBufferSource();noise.buffer=buffer;
+  const filter=ctx.createBiquadFilter();filter.type="lowpass";
+  filter.frequency.setValueAtTime(850,now);
+  filter.frequency.exponentialRampToValueAtTime(180,now+duration);
+  const gain=ctx.createGain();
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.105,now+0.007);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+duration);
+  noise.connect(filter);filter.connect(gain);gain.connect(soundFilter||soundDestination());
+  noise.start(now);noise.stop(now+duration);
+ }catch(e){}
+}
+// アイテム取得時の軽い上昇音。既存のブロック破壊音と同じAudioContextを使用。
+let itemSoundLast=-1;
+function playItemPickupSound(){
+ const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ if(now-itemSoundLast<0.055)return; // 同時取得時の音量を抑える
+ itemSoundLast=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type="sine";
+  osc.frequency.setValueAtTime(620,now);
+  osc.frequency.exponentialRampToValueAtTime(1040,now+0.115);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.10,now+0.009);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.15);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());
+  osc.start(now);osc.stop(now+0.155);
+ }catch(e){}
+}
+// モンスター撃破時の短い下降音（ボス撃破にも対応）
+let monsterSoundLast=-1;
+function playMonsterDefeatSound(){
+ const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ if(now-monsterSoundLast<0.065)return;
+ monsterSoundLast=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type="triangle";
+  osc.frequency.setValueAtTime(510,now);
+  osc.frequency.exponentialRampToValueAtTime(170,now+0.19);
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.14,now+0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.21);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());
+  osc.start(now);osc.stop(now+0.215);
+ }catch(e){}
+}
+function destroy(block){if(!block.alive||block.type==="iron")return;block.alive=false;if(block.type==="coin"&&!game.mini){data().coins+=50;persist();toast("コインブロック！ +50コイン")}if(block.type==="bomb")playBombExplosionSound();else playBlockBreakSound();burst(X0+(block.c+.5)*CW,Y0+(block.row+.5)*CH,block.type==="bomb"?"#ffb15a":"#5edbff");if(block.type==="bomb"){for(const m of game.monsters){if(m.alive&&Math.abs(m.c-block.c)<=1&&Math.abs(m.row-block.row)<=1)defeatMonster(m)}for(const other of game.blocks){if(other.alive&&other.type!=="iron"&&Math.abs(other.c-block.c)<=1&&Math.abs(other.row-block.row)<=1)destroy(other)}}}
+function handleItem(b,item){if(item.collected)return;if(item.type==="miniBall"){if(!game.mini)return;item.collected=true;playItemPickupSound();game.miniBalls++;burst(b.x,b.y,"#9bff70");updateStats();return}if(b.used.has(item.id))return;b.used.add(item.id);playItemPickupSound();if(b.special==="copy"&&!b.copyUsed){b.copyUsed=true;const clone={...item,id:String(item.id)+"-copy",collected:false};handleItem(b,clone)}if(game.mini){item.usedThisVolley=true;if(item.type==="split")item.collected=true;}if(item.type==="damage"){b.baseDamage??=b.damage;b.damageStacks=(b.damageStacks||0)+1;b.damage=Math.max(1,Math.floor(b.baseDamage*Math.pow(game.mini?2:1.5,b.damageStacks)));b.itemDamage=true;}else if(item.type==="speed"){b.speedMul*=1.5;b.vx*=1.5;b.vy*=1.5;b.itemSpeed=true;}else if(item.type==="bounce"){b.bounceCharges=(b.bounceCharges||0)+1;b.bounceReady=true;b.itemBounce=true}else if(item.type==="split"&&game.balls.length<100){const speed=Math.hypot(b.vx,b.vy)||330,side=b.vx>=0?1:-1;game.pending.push({x:b.x+side*12,y:b.y+9,vx:b.vx,vy:b.vy,damage:b.damage,baseDamage:b.baseDamage??b.damage,damageStacks:b.damageStacks||0,speedMul:b.speedMul,used:new Set(b.used),bounceReady:b.bounceReady||false,bounceCharges:b.bounceCharges||0,itemDamage:!!b.itemDamage,itemSpeed:!!b.itemSpeed,itemBounce:!!b.itemBounce,itemSplit:true,r:7})}burst(b.x,b.y,"#c9ff8a")}
+function specialBlast(target,amount){
+ const g=game;
+ for(const other of g.blocks)if(other.alive&&other.type!=="iron"&&Math.abs(other.c-target.c)<=1&&Math.abs(other.row-target.row)<=1){other.hp-=amount;if(other.hp<=0)destroy(other)}
+ for(const m of g.monsters)if(m.alive&&Math.abs(m.c-target.c)<=1&&Math.abs(m.row-target.row)<=1){m.hp-=amount;if(m.hp<=0)defeatMonster(m)}
+}
+function specialHit(b,target,isMonster){
+ if(!b.special||game.mini)return;
+ if(b.special==='angel'&&isMonster&&!b.angelUsed){b.angelUsed=true;target.hp-=3}
+ if(b.special==='water'&&!isMonster){for(const other of game.blocks)if(other.alive&&other.type!=='iron'&&other.row===target.row&&Math.abs(other.c-target.c)===1){other.hp--;if(other.hp<=0)destroy(other)}}
+ if(b.special==='frozen'&&isMonster){b.gemHits??={};const key=String(target.id);b.gemHits[key]=(b.gemHits[key]||0)+1;if(b.gemHits[key]%3===0)target.frozen=5}
+
+ if(b.special==='vine'&&isMonster)target.slowTime=5;
+ if(b.special==='magma'&&!isMonster){game.delayedHits??=[];game.delayedHits.push({target,remaining:3,damage:2})}
+ if(b.special==='star'&&b.starBoost){b.starBoost=false;b.hitCount=0}
+ if(b.special==='ice'&&isMonster)target.frozen=3;
+ if(b.special==='poison'&&isMonster){target.poisonTime=3;target.poisonTicks=3;target.poisonClock=0}
+ if(b.special==='vampire'&&isMonster&&target.hp<=0&&Math.random()<.1&&game.balls.length+game.pending.length<100){game.pending.push({...b,used:new Set(b.used),special:null,splitDone:true,hitCount:0})}
+ if(b.special==='bombball'||b.special==='meteor'||b.special==='dragon'||b.special==='star'){
+   b.hitCount=(b.hitCount||0)+1;
+   const limit=b.special==='bombball'?5:b.special==='star'?7:10;
+   if(b.hitCount>=limit){b.hitCount=0;if(b.special==='star')b.starBoost=true;else {specialBlast(target,b.special==='bombball'?1:b.special==='dragon'?2:3);burst(b.x,b.y,'#ffb35c')}}
+ }
+ if(['warp','solar','dimension','legend'].includes(b.special)){
+  b.gemCount=(b.gemCount||0)+1;
+  const limit={warp:5,solar:10,dimension:5,legend:10}[b.special];
+  if(b.gemCount>=limit){b.gemCount=0;
+   const enemies=game.monsters.filter(m=>m.alive);
+   if(b.special==='galaxy'&&game.balls.length+game.pending.length<100){const speed=Math.hypot(b.vx,b.vy)||330;game.pending.push({...b,damage:1,baseDamage:1,special:null,vx:-b.vx*.6,vy:-Math.abs(b.vy||speed),used:new Set(b.used)})}
+   if(b.special==='warp'){b.x=15+Math.random()*(W-30);b.y=Y0+Math.random()*(ROWS*CH*.7)}
+   if(b.special==='solar')for(const m of enemies){m.hp--;if(m.hp<=0)defeatMonster(m)}
+   if(b.special==='dimension'&&enemies.length){const m=enemies.reduce((a,z)=>((a.c*CW-b.x)**2+(a.row*CH-b.y)**2)<((z.c*CW-b.x)**2+(z.row*CH-b.y)**2)?a:z);b.x=Math.max(10,Math.min(W-10,X0+(m.c+.5)*CW-b.vx/Math.max(1,Math.hypot(b.vx,b.vy))*CW));b.y=Math.max(10,Math.min(H-10,Y0+(m.row+.5)*CH-b.vy/Math.max(1,Math.hypot(b.vx,b.vy))*CH))}
+   if(b.special==='legend')for(const m of enemies.slice(0,3)){m.hp-=2;if(m.hp<=0)defeatMonster(m)}
+  }
+ }
+ if(b.special==='fire'&&!isMonster){for(const other of game.blocks){if(other!==target&&other.alive&&other.type!=='iron'&&Math.abs(other.c-target.c)<=1&&Math.abs(other.row-target.row)<=1){other.hp--;if(other.hp<=0)destroy(other)}}}
+ if(b.special==='thunder'){const nearby=isMonster?game.monsters:game.monsters;const other=nearby.find(m=>m!==target&&m.alive&&Math.abs(m.c-target.c)<=1.5&&Math.abs(m.row-target.row)<=1);if(other){other.hp--;if(other.hp<=0)defeatMonster(other)}}
+ if(b.special==='split'&&!b.splitDone){b.splitDone=true;const speed=Math.hypot(b.vx,b.vy)||330,ang=Math.atan2(b.vy,b.vx);for(const delta of [-.38,.38]){if(game.balls.length+game.pending.length>=100)break;game.pending.push({...b,x:b.x,y:b.y,vx:Math.cos(ang+delta)*speed,vy:Math.sin(ang+delta)*speed,splitDone:true,used:new Set(b.used)})}}
+}
+function specialWall(b){
+ if(b.special==='moon'){b.vx*=1.035;b.vy*=1.035}
+ if(b.special==='mirror'&&Math.random()<.01&&game.balls.length+game.pending.length<100){game.pending.push({...b,vx:-b.vx,vy:b.vy,used:new Set(b.used),drillHits:{...b.drillHits}})}
+}
+// 壁・ブロック・モンスターへの接触音（種類ごとに音色を変える）
+const collisionSoundLast={wall:-1,block:-1,monster:-1};
+function playCollisionSound(kind){
+ const ctx=blockSoundContext;if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ // 高速で跳ね返るときの音の重なりを防止
+ const gap=kind==='wall'?.055:.045;
+ if(now-collisionSoundLast[kind]<gap)return;
+ collisionSoundLast[kind]=now;
+ try{
+  const osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type=kind==='wall'?'triangle':kind==='block'?'square':'sine';
+  const freq=kind==='wall'?360:kind==='block'?230:560;
+  const duration=kind==='wall'?.055:kind==='block'?.065:.085;
+  osc.frequency.setValueAtTime(freq,now);
+  osc.frequency.exponentialRampToValueAtTime(freq*(kind==='monster'?.65:.78),now+duration);
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.exponentialRampToValueAtTime(kind==='wall'?.18:kind==='block'?.085:.065,now+.004);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  osc.connect(gain);gain.connect(soundFilter||soundDestination());
+  osc.start(now);osc.stop(now+duration+.005);
+ }catch(e){}
+}
+function step(dt){const g=game;if(!g||paused||screen!=="play")return;if(g.cleared)return;
+// 発射前の待機中も左右移動モンスターは動き続ける。
+ for(const m of g.monsters)if(m.alive&&(m.type==="moving"||((m.type==="movingBoss"||(m.type==="boss"&&!g.custom&&(g.n===25||g.n===50)))))){
+   m.frozen=Math.max(0,(m.frozen||0)-dt);if(m.frozen>0)continue;m.slowTime=Math.max(0,(m.slowTime||0)-dt);m.c+=m.dir*dt*1.45*(m.slowTime>0?.5:1);
+   if(m.c>=COLS-1){m.c=COLS-1;m.dir=-1}
+   else if(m.c<=0){m.c=0;m.dir=1}
+ }
+ // 毒は発射中も待機中も経過する（1秒につき1ダメージ、最大3回）。
+ for(const m of g.monsters)if(m.alive&&(m.poisonTicks||0)>0){
+   const elapsed=dt;m.poisonClock=(m.poisonClock||0)+elapsed;
+   m.poisonTime=Math.max(0,(m.poisonTime||0)-elapsed);
+   if(m.poisonClock>=1){m.poisonClock-=1;m.poisonTicks--;m.hp--;if(m.hp<=0)defeatMonster(m)}
+ }
+ if(g.delayedHits?.length){for(const hit of g.delayedHits)hit.remaining-=dt;for(const hit of g.delayedHits)if(hit.remaining<=0&&hit.target.alive){hit.target.hp-=hit.damage;if(hit.target.hp<=0)destroy(hit.target)}g.delayedHits=g.delayedHits.filter(h=>h.remaining>0)}
+ if(g.waiting)return;
+ g.manualTime=(g.manualTime||0)+dt;g.manualBarrier=Math.max(0,(g.manualBarrier||0)-dt);
+ // 後続の球を一定間隔で同じ発射位置から出す。
+if(g.volleyQueue&&g.volleyQueue.length){
+ for(const b of g.volleyQueue)b.delay-=dt;
+ while(g.volleyQueue.length&&g.volleyQueue[0].delay<=0)g.balls.push(g.volleyQueue.shift());
+}
+g.pending=[];
+for(const b of g.balls){
+ if(b.special==='manual_rewind'){
+  b.history??=[];b.history.push({t:g.manualTime,x:b.x,y:b.y,vx:b.vx,vy:b.vy});
+  while(b.history.length>1&&b.history[0].t<g.manualTime-3)b.history.shift();
+ }
+ if(b.manualSpeed>0){b.manualSpeed=Math.max(0,b.manualSpeed-dt);if(b.manualSpeed===0){b.vx/=2;b.vy/=2}}
+ if(b.manualStop>0){b.manualStop=Math.max(0,b.manualStop-dt);continue}
+ if(b.special==='homing'){
+  const nearest=g.monsters.filter(m=>m.alive).map(m=>({m,dx:X0+(m.c+.5)*CW-b.x,dy:Y0+(m.row+.5)*CH-b.y})).sort((a,z)=>(a.dx*a.dx+a.dy*a.dy)-(z.dx*z.dx+z.dy*z.dy))[0];
+  if(nearest&&nearest.dx*nearest.dx+nearest.dy*nearest.dy<240*240){const speed=Math.hypot(b.vx,b.vy)||330,desired=Math.atan2(nearest.dy,nearest.dx),old=Math.atan2(b.vy,b.vx),diff=Math.atan2(Math.sin(desired-old),Math.cos(desired-old)),angle=old+Math.max(-dt*.65,Math.min(dt*.65,diff));b.vx=Math.cos(angle)*speed;b.vy=Math.sin(angle)*speed}
+ }
+ const slices=Math.min(96,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/2)));for(let k=0;k<slices;k++){b.x+=b.vx*dt/slices;b.y+=b.vy*dt/slices;if(b.special==='planet'){if(b.x+b.r<0)b.x=W+b.r;else if(b.x-b.r>W)b.x=-b.r}else{if(b.x-b.r<0){b.x=b.r;b.vx=Math.abs(b.vx);playCollisionSound("wall");specialWall(b)}if(b.x+b.r>W){b.x=W-b.r;b.vx=-Math.abs(b.vx);playCollisionSound("wall");specialWall(b)}}if(b.y-b.r<0){b.y=b.r;b.vy=Math.abs(b.vy);playCollisionSound("wall");specialWall(b)}
+if(b.y-b.r>H)break;
+let monsterHit=false;for(const m of g.monsters){if(!m.alive)continue;const x=X0+m.c*CW+2,y=Y0+m.row*CH+2;
+ if(circleRect(b,x,y,CW-4,CH-4)){reflect(b,x,y,CW-4,CH-4);playCollisionSound("monster");m.hp-=b.damage*(b.starBoost?2:1);specialHit(b,m,true);if(m.hp<=0){defeatMonster(m);if(b.special==='gold'&&Math.random()<.2){data().coins+=20;persist();toast('ゴールド！ +20コイン')}}monsterHit=true;break}}
+if(monsterHit)continue;
+for(const block of g.blocks){if(!block.alive)continue;const x=X0+block.c*CW+2,y=Y0+block.row*CH+2;if(circleRect(b,x,y,CW-4,CH-4)){playCollisionSound("block");if(b.special!=="pierce"&&!(b.special==="ghost"&&block.type==="iron")||b.special==="pierce"&&block.type==="iron")reflect(b,x,y,CW-4,CH-4);if(block.type==="iron"&&b.special==='diamond'){
+  const near=g.monsters.filter(m=>m.alive).sort((a,z)=>Math.abs(a.c-block.c)+Math.abs(a.row-block.row)-Math.abs(z.c-block.c)-Math.abs(z.row-block.row))[0];
+  if(near){near.hp-=2;if(near.hp<=0)defeatMonster(near)}
+ }if(block.type!=="iron"){const wasAlive=block.alive;let dmg=b.damage*(b.starBoost?2:1);if(b.special==='drill'){b.drillHits??={};const id=block.id;b.drillHits[id]=(b.drillHits[id]||0)+1;if(b.drillHits[id]>1)dmg+=1}if(block.type==="glass")dmg*=2;else if(block.type==="armor")dmg=Math.max(.5,dmg*.5);block.hp-=dmg;specialHit(b,block,false);if(block.hp<=0){destroy(block);if(wasAlive&&b.special==='crash'){const below=g.blocks.find(o=>o.alive&&o.type!=='iron'&&o.c===block.c&&o.row===block.row+1);if(below){below.hp-=2;if(below.hp<=0)destroy(below)}}if(b.special==="lucky"&&Math.random()<.1){data().coins+=10;persist();toast("ラッキー！ +10コイン")}}}break}}
+for(const item of g.items){if(item.collected)continue;const x=X0+(item.c+.5)*CW,y=Y0+(item.row+.5)*CH;if((b.x-x)**2+(b.y-y)**2<=(b.r+11)**2)handleItem(b,item)}
+}}
+
+g.balls=g.balls.filter(b=>{if(b.y-b.r>H){if((g.manualBarrier||0)>0||(b.bounceCharges||0)>0||b.bounceReady||((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed)){if((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed){b.boomerangUsed=true;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));return true}if((g.manualBarrier||0)>0){b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#80e6b8");return true}b.bounceCharges=Math.max(0,(b.bounceCharges||1)-1);b.bounceReady=b.bounceCharges>0;b.itemBounce=b.bounceReady;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#ff9df4");return true}g.launchX=Math.max(12,Math.min(W-12,b.x));return false}return true}).concat(g.pending);
+g.effects=g.effects.filter(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;return p.life>0});
+if(!g.mini&&g.monsters.every(m=>!m.alive)&&g.blocks.every(b=>!b.alive||b.type==="iron"||b.type==="bomb"||b.type==="coin")){finishStage();return}
+if(!g.balls.length&&!(g.volleyQueue&&g.volleyQueue.length)){if(g.mini){g.items=g.items.filter(item=>!item.collected&&!item.usedThisVolley);miniTurnEnd();return}advanceMonsters();if(g.cleared)return;g.waiting=true;g.nextX=g.launchX;updateStats()}
+}
+// ステージクリア時の短いファンファーレ（外部ファイル不要）
+let stageClearSoundLast=-1;
+function playStageClearSound(){
+ enableBlockSound();const ctx=blockSoundContext;
+ if(!ctx||ctx.state!=="running")return;
+ const now=ctx.currentTime;
+ if(now-stageClearSoundLast<0.6)return;
+ stageClearSoundLast=now;
+ try{
+  const notes=[523.25,659.25,783.99,1046.5];
+  notes.forEach((hz,i)=>{
+   const start=now+i*0.12,osc=ctx.createOscillator(),gain=ctx.createGain();
+   osc.type="triangle";osc.frequency.setValueAtTime(hz,start);
+   gain.gain.setValueAtTime(0.0001,start);
+   gain.gain.exponentialRampToValueAtTime(0.105,start+0.018);
+   gain.gain.exponentialRampToValueAtTime(0.0001,start+(i===3?0.42:0.17));
+   osc.connect(gain);gain.connect(soundFilter||soundDestination());
+   osc.start(start);osc.stop(start+(i===3?0.43:0.18));
+  });
+ }catch(e){}
+}
+function finishStage(){const g=game;if(!g||g.cleared)return;if(g.custom){g.cleared=true;g.waiting=true;playStageClearSound();updateStats();modal("🎉 自作ステージクリア！",`<p>発射回数：${g.shots}回</p><p>自作ステージでは星・通常ステージの進行度は変わりません。コインブロックの報酬は獲得できます。</p>`,[["もう一度",()=>startCustomStage()],["編集画面に戻る",()=>{closeModal();show("custom")}],["ステージ選択へ",()=>{closeModal();show("select")}] ]);return;} g.cleared=true;playStageClearSound();g.waiting=true;const stars=g.shots<=g.three?3:g.shots<=g.two?2:1,d=data();const reward=d.coinClaimed[g.n-1]?50:g.n*100;d.coins+=reward;d.coinClaimed[g.n-1]=true;g.clearReward=reward;d.stars[g.n-1]=Math.max(d.stars[g.n-1],stars);d.unlocked=Math.max(d.unlocked,Math.min(50,g.n+1));d.checkpoint=Math.min(50,g.n+1);persist();updateStats();
+const buttons=[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["手動セーブ",()=>{persist();toast("保存しました")}],["ステージ選択へ",()=>{closeModal();show("select")}]];
+if(g.n<50)buttons.unshift(["次のステージ",()=>startStage(g.n+1)]);
+if(g.n===50){modal("🎉 GAME CLEAR! 🎉",`<p>全50ステージクリア！</p><div class="final-stars"><p>ステージ50の獲得した星</p><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong><p>${stars} / 3 個</p></div><p>今回の発射回数：${g.shots}</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${d.coins}枚</p><p>合計の星：${starsTotal()} / 150</p><p>🎆 ✨ 🎊 ✨ 🎆</p>`,[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}],["タイトルへ",()=>{closeModal();show("home")}]])}
+else modal(`ステージ ${g.n} クリア！`,`<h1>${"★".repeat(stars)}${"☆".repeat(3-stars)}</h1><p>発射回数：${g.shots}回</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${d.coins}枚</p><p>合計の星：${starsTotal()} / 150</p>`,buttons)}
+function showClearResult(){const g=game;if(!g)return;const stars=data().stars[g.n-1];const buttons=[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}]];if(g.n<50)buttons.unshift(["次のステージ",()=>startStage(g.n+1)]);if(g.n===50)buttons.push(["タイトルへ",()=>{closeModal();show("home")}]);else buttons.push(["手動セーブ",()=>{persist();toast("保存しました")}]);modal(g.n===50?"🎉 GAME CLEAR! 🎉":`ステージ ${g.n} クリア！`,g.n===50?`<p>全50ステージクリア！</p><div class="final-stars"><p>ステージ50の獲得した星</p><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong><p>${stars} / 3 個</p></div><p>発射回数：${g.shots}回</p><p>合計の星：${starsTotal()} / 150</p>`:`<h1>${"★".repeat(stars)}${"☆".repeat(3-stars)}</h1><p>発射回数：${g.shots}回</p><p>合計の星：${starsTotal()} / 150</p>`,buttons)}
+function confirmRestart(){if(!game||screen!=="play")return;const mini=!!game.mini,stage=game.n;modal("やり直しますか？","<p>現在のプレイ状況はリセットされます。獲得済みのコインやセーブデータは消えません。</p>",[["やり直す",()=>{if(mini)startMiniGame();else if(game.custom)startCustomStage();else startStage(stage)}],["キャンセル",()=>pauseMenu()]])}
+function pauseMenu(){if(!game||screen!=="play")return;paused=true;if(game.mini){modal("一時停止","<p>ミニゲームを一時停止しています。</p>",[["ゲームに戻る",()=>{closeModal();paused=false}],["やり直す",()=>confirmRestart()],["タイトルに戻る",()=>{closeModal();paused=false;show("home")}]]);return}modal("一時停止","<p>ゲームを一時停止しています。</p>",[["ゲームに戻る",()=>{closeModal();paused=false}],["やり直す",()=>confirmRestart()],["設定",()=>{closeModal();settingsBack="play";show("settings")}],["ボールの見た目変更",()=>{closeModal();show("skins");previousScreen="play"}],["ステージ選択",()=>{closeModal();paused=false;show("select")}],["タイトルに戻る",()=>{closeModal();paused=false;show("home")}]])}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+let frameSkin=null;function drawBall(b){const skin=frameSkin|| (game?.mini?["白いボール","#ffffff","plain"]:data()?.activeGemSkin>=0?[GEM_SKINS[data().activeGemSkin].name,GEM_SKINS[data().activeGemSkin].color,GEM_SKINS[data().activeGemSkin].kind]:data()?.activeCoinSkin>=0?[COIN_SKINS[data().activeCoinSkin].name,COIN_SKINS[data().activeCoinSkin].color,COIN_SKINS[data().activeCoinSkin].kind]:SKINS[data()?.skin||0]),color=skin[1];ctx.save();ctx.shadowBlur=(game?.balls.length||0)>12?0:8;ctx.shadowColor=color;ctx.fillStyle=color;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle="#ffffff";if(skin[2]==="star"){ctx.font="12px sans-serif";ctx.textAlign="center";ctx.fillText("★",b.x,b.y+4)}else if(skin[2]==="stripe"){ctx.fillRect(b.x-5,b.y-2,10,3)}else if(skin[2]==="bolt"){ctx.font="12px sans-serif";ctx.textAlign="center";ctx.fillText("ϟ",b.x,b.y+4)}else if(skin[2]==="fire"||skin[2]==="ice"){ctx.beginPath();ctx.arc(b.x-2,b.y-2,3,0,Math.PI*2);ctx.fill()}else if(["gem","wave","orbit","flower","sun","moon","crown"].includes(skin[2])){ctx.font="bold 11px sans-serif";ctx.textAlign="center";ctx.fillText(({gem:"◆",wave:"≈",orbit:"◎",flower:"✿",sun:"☀",moon:"☾",crown:"♛"})[skin[2]],b.x,b.y+4)}// アイテムの効果を受けたボールには、飛行中ずっと見える色リングとマークを付ける。
+if(b.itemDamage||b.itemSpeed||b.itemBounce||b.itemSplit){
+ const effects=[b.itemDamage&&["#ffdd4f","×"+Math.pow(2,b.damageStacks||1).toFixed(2).replace(/0+$/,"").replace(/\.$/,"")],b.itemSpeed&&["#55e9ff","≫×"+b.speedMul.toFixed(2).replace(/0+$/,"").replace(/\.$/,"")],b.itemBounce&&["#ff78e8","↥"+(b.bounceCharges||1)],b.itemSplit&&["#9bff70","+1"]].filter(Boolean);
+ ctx.shadowBlur=12;ctx.lineWidth=3;ctx.strokeStyle=effects[0][0];ctx.beginPath();ctx.arc(b.x,b.y,b.r+4,0,Math.PI*2);ctx.stroke();
+ ctx.shadowBlur=0;ctx.textAlign="center";ctx.font="bold 10px sans-serif";
+ effects.forEach((e,i)=>{ctx.fillStyle=e[0];ctx.fillText(e[1],b.x+(i-(effects.length-1)/2)*24,b.y-16)});
+}
+ctx.restore()}
+function drawGame(){const g=game;if(!g)return;const d=data();frameSkin=g.mini?["白いボール","#ffffff","plain"]:d?.activeGemSkin>=0&&GEM_SKINS[d.activeGemSkin]?[GEM_SKINS[d.activeGemSkin].name,GEM_SKINS[d.activeGemSkin].color,GEM_SKINS[d.activeGemSkin].kind]:d?.activeCoinSkin>=0&&COIN_SKINS[d.activeCoinSkin]?[COIN_SKINS[d.activeCoinSkin].name,COIN_SKINS[d.activeCoinSkin].color,COIN_SKINS[d.activeCoinSkin].kind]:SKINS[d?.skin||0];const bright={dark:"#060c1c",normal:"#0b1530",bright:"#1c2e4d"}[store.settings.brightness];ctx.fillStyle=bright;ctx.fillRect(0,0,W,H);
+if(g.manualBarrier>0){ctx.fillStyle="#80e6b8";ctx.fillRect(0,H-9,W,7)}
+ctx.strokeStyle="#28476c";ctx.lineWidth=1;for(let c=0;c<=COLS;c++){ctx.beginPath();ctx.moveTo(X0+c*CW,Y0);ctx.lineTo(X0+c*CW,Y0+ROWS*CH);ctx.stroke()}
+for(let row=0;row<=ROWS;row++){ctx.beginPath();ctx.moveTo(X0,Y0+row*CH);ctx.lineTo(X0+COLS*CW,Y0+row*CH);ctx.stroke()}
+ctx.font="bold 16px system-ui";ctx.textAlign="center";ctx.fillStyle="#b8d9ff";ctx.fillText(g.mini?`MINI GAME  ${g.miniTurns} 回`: `STAGE ${g.n}`,W/2,33);if(!g.mini&&MANUAL_KINDS.has(skinPower().kind)){ctx.font="bold 12px system-ui";ctx.fillStyle=g.manualUsed?"#8998aa":"#ffe78d";ctx.fillText(g.manualUsed?"能力使用済み":g.manualTarget?"クリックで対象指定":"SPACE：手動能力",W/2,49)}
+for(const block of g.blocks){if(!block.alive)continue;const x=X0+block.c*CW+2,y=Y0+block.row*CH+2,color=block.type==="iron"?"#8c9aaa":block.type==="bomb"?"#ff8752":block.type==="glass"?"#b4f3ff":block.type==="armor"?"#8795ce":block.type==="coin"?"#ffd15c":"#3ac5ff";ctx.save();ctx.shadowColor=color;ctx.shadowBlur=store.settings.effects==="low"||g.blocks.length>35?0:5;ctx.fillStyle=block.type==="iron"?"#34445b":block.type==="bomb"?"#7e2d36":block.type==="glass"?"rgba(167,236,255,0.17)":block.type==="armor"?"#343a70":block.type==="coin"?"#8a5b16":"#123e68";ctx.strokeStyle=block.type==="glass"?"rgba(209,249,255,0.82)":color;ctx.lineWidth=2;roundRect(x,y,CW-4,CH-4,6);ctx.fill();ctx.stroke();if(block.type==="glass"){ctx.beginPath();ctx.moveTo(x+7,y+12);ctx.lineTo(x+18,y+4);ctx.moveTo(x+7,y+22);ctx.lineTo(x+29,y+4);ctx.strokeStyle="rgba(255,255,255,0.48)";ctx.lineWidth=2;ctx.stroke()}ctx.restore();if(block.type==="bomb"){
+ ctx.textAlign="center";ctx.fillStyle="#ffda82";ctx.font="bold 12px system-ui";ctx.fillText("爆",x+(CW-4)/2,y+15);
+ ctx.fillStyle="#ffffff";ctx.font="bold 21px system-ui";ctx.fillText(String(Math.max(1,Math.ceil(block.hp))),x+(CW-4)/2,y+36);
+}else{ctx.fillStyle="#ffffff";ctx.font="bold 17px system-ui";ctx.fillText(block.type==="iron"?"▦":block.type==="glass"?"◇"+Math.max(1,Math.ceil(block.hp)):block.type==="armor"?"◆"+Math.max(1,Math.ceil(block.hp)):block.type==="coin"?String(Math.max(1,Math.ceil(block.hp))):String(Math.max(1,Math.ceil(block.hp))),x+(CW-4)/2,y+27)}}
+for(const m of g.monsters){if(!m.alive)continue;
+ const x=X0+m.c*CW+CW/2,y=Y0+m.row*CH+CH/2,boss=m.type==="boss"||m.type==="movingBoss",color=boss?"#ff5bdc":m.type==="moving"?"#ffae57":"#55ffca";
+ ctx.save();ctx.shadowBlur=store.settings.effects==="low"||g.monsters.length>12?0:8;ctx.shadowColor=color;
+ ctx.fillStyle=boss?"#602052":m.type==="moving"?"#75401b":"#145a57";ctx.strokeStyle=color;ctx.lineWidth=boss?3:2;
+ ctx.beginPath();ctx.moveTo(x-19,y+15);ctx.lineTo(x-20,y-8);ctx.lineTo(x-10,y-18);ctx.lineTo(x,y-12);ctx.lineTo(x+10,y-18);ctx.lineTo(x+20,y-8);ctx.lineTo(x+19,y+15);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.shadowBlur=0;ctx.fillStyle="#fff";ctx.fillRect(x-11,y-6,7,5);ctx.fillRect(x+4,y-6,7,5);
+ ctx.fillStyle="#ffffff";ctx.font="bold 13px system-ui";ctx.textAlign="center";ctx.fillText(String(Math.max(1,Math.ceil(m.hp))),x,y+12);
+ if(m.type==="moving"){ctx.fillStyle="#fff1c2";ctx.font="bold 10px system-ui";ctx.fillText("↔",x,y-23)}if(boss){ctx.fillStyle="#ffd1f8";ctx.font="bold 10px system-ui";ctx.fillText(m.type==="movingBoss"?"↔ BOSS":"BOSS",x,y-23)}ctx.restore();}
+for(const item of g.items){const x=X0+(item.c+.5)*CW,y=Y0+(item.row+.5)*CH,col=item.type==="miniBall"?"#9bff70":item.type==="damage"?"#f9e276":item.type==="speed"?"#7effd2":item.type==="bounce"?"#ff9df4":"#d4a0ff";ctx.save();ctx.shadowColor=col;ctx.shadowBlur=12;ctx.fillStyle="#182b45";ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,12,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;ctx.fillStyle=col;ctx.font="bold 11px system-ui";ctx.fillText(item.type==="miniBall"?"+1":item.type==="damage"?(g.mini?"×2":"×1.5"):item.type==="speed"?"×1.5":item.type==="bounce"?"↥1":"+1",x,y+4);ctx.restore()}
+ctx.strokeStyle="#4e7899";ctx.beginPath();ctx.moveTo(0,BASEY+13);ctx.lineTo(W,BASEY+13);ctx.stroke();
+if(g.waiting&&!g.cleared){drawBall({x:g.nextX,y:BASEY,r:7});if(store.settings.guide){ctx.save();ctx.setLineDash([7,7]);ctx.strokeStyle="#ffe582";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(g.nextX,BASEY);ctx.lineTo(g.nextX+Math.cos(g.aim)*250,BASEY+Math.sin(g.aim)*250);ctx.stroke();ctx.restore()}}
+for(const b of g.balls)drawBall(b);
+for(const p of g.effects){ctx.globalAlpha=Math.min(1,p.life*3);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3)}ctx.globalAlpha=1;
+}
+function loop(t){const dt=Math.min(.032,(t-last)/1000||0);last=t;menuTime+=dt;if(screen==="play"&&game){if(game.waiting&&!paused){const a={slow:.65,normal:1.3,fast:2.3}[store.settings.aim]||1.3;if(keys.has("ArrowLeft"))game.aim-=a*dt;if(keys.has("ArrowRight"))game.aim+=a*dt;game.aim=Math.max(-Math.PI+.12,Math.min(-.12,game.aim))}// 2倍時は物理処理を2回に分け、衝突判定のすり抜けを抑える。
+const speedFactor=store.settings.gameSpeed==="2"?2:1;
+for(let i=0;i<speedFactor;i++)step(dt);
+$("returnBallsBtn").disabled=game.waiting||game.cleared;drawGame()}
+if(screen==="versus"&&onlineStartAt){drawVersusBoard();const left=Math.ceil((onlineStartAt-Date.now())/1000);if(left<=0&&lastCountdown>0)drawVersusBoard();lastCountdown=left;if(!onlineRoomData?.roundResult)$("versusCountdown").textContent=left>0?`開始まで ${left}…`:"⚔️ スタート！"}
+if(screen==="home")drawMenu(t);raf=requestAnimationFrame(loop)}
+const mctx=$("menuBg").getContext("2d");function drawMenu(t){const c=$("menuBg"),w=c.clientWidth,h=c.clientHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h}mctx.clearRect(0,0,w,h);const colors=["#5cf4ff","#ff68d5","#b48aff","#ffdc77"];for(let i=0;i<18;i++){const x=((i*93+Math.sin(t*.0006+i)*55)%Math.max(w,1)),y=((i*47+t*.035*(i%3+1))%Math.max(h,1));mctx.fillStyle=colors[i%4];mctx.shadowColor=colors[i%4];mctx.shadowBlur=12;mctx.fillRect(x,y,29,14)}mctx.shadowBlur=0;for(let i=0;i<5;i++){const x=w/2+Math.sin(t*.0012+i*1.3)*w*.43,y=h/2+Math.cos(t*.0015+i*1.9)*h*.4;mctx.beginPath();mctx.arc(x,y,7,0,Math.PI*2);mctx.fillStyle=colors[i%4];mctx.fill()}}
+// 管理人コード確認後、選択中のセーブデータの通貨だけを編集する。
+function openAdminCurrencyEditor(){
+  const d=data();
+  if(!d){toast("先にセーブデータを選んでください");return}
+  modal("🔑 管理人：所持通貨の変更",
+    `<p>現在の所持数を入力して変更できます（セーブデータ ${slot+1}）。</p>`+
+    `<label for="adminCoins">🪙 コイン</label><input id="adminCoins" type="number" min="0" max="999999999999" step="1" value="${d.coins||0}" style="width:100%;box-sizing:border-box;padding:10px;margin:5px 0 12px">`+
+    `<label for="adminGems">💎 ジェム</label><input id="adminGems" type="number" min="0" max="999999999999" step="1" value="${d.gems||0}" style="width:100%;box-sizing:border-box;padding:10px;margin:5px 0 12px">`,
+    [["変更して保存",()=>{
+      const coins=Number($("adminCoins").value),gems=Number($("adminGems").value);
+      if(!Number.isSafeInteger(coins)||!Number.isSafeInteger(gems)||coins<0||gems<0||coins>999999999999||gems>999999999999){
+        toast("0～999999999999の整数を入力してください");return;
+      }
+      d.coins=coins;d.gems=gems;persist();closeModal();renderSelect();toast("コインとジェムを変更しました");
+    }],["キャンセル",closeModal]]);
+}
+$("adminCodeBtn").onclick=()=>{
+  modal("🔑 管理人用コード",'<p>管理人用コードを入力してください。</p><input id="adminCodeInput" type="password" autocomplete="off" maxlength="10" inputmode="numeric" placeholder="管理人用コード" aria-label="管理人用コード" style="width:100%;box-sizing:border-box;padding:12px;border-radius:8px;margin:8px 0">',[["確認",()=>{const input=$("adminCodeInput");if(!input||!input.value.trim()){toast("コードを入力してください");return}if(input.value.trim()==="9146738250"){closeModal();openAdminCurrencyEditor()}else{toast("管理人用コードが違います")} }],["閉じる",closeModal]]);
+  const input=$("adminCodeInput");if(input)input.addEventListener("keydown",e=>{if(e.key==="Enter")$("overlayButtons").querySelector("button").click()});
+};
+
+// 自作ステージエディター。通常の50ステージのセーブとは別に保存する。
+const CUSTOM_KEY="sbc-custom-stages-v1", customBoard=$("customCanvas"),customCtx=customBoard.getContext("2d");
+let customCells=Array(80).fill(null),customSelected=-1,customPlaying=null;
+function customList(){try{const a=JSON.parse(localStorage.getItem(CUSTOM_KEY)||"[]");return Array.isArray(a)?a.slice(0,10):[]}catch{return []}}
+function validCustomCell(v){if(!v||typeof v!=="object")return null;const allowed=["normal","bomb","iron","glass","armor","coin","monster","moving","boss","movingBoss","damage","speed","split","bounce"];if(!allowed.includes(v.type))return null;return {type:v.type,hp:Math.max(1,Math.min(999,Math.floor(Number(v.hp)||1)))}}
+function renderCustomEditor(){const colors={normal:"#54c5fa",glass:"#b4f3ff",armor:"#727eaf",coin:"#ffd15c",bomb:"#ff9950",iron:"#8796ac",monster:"#64df9a",moving:"#42c7ab",boss:"#f66dd4",movingBoss:"#ff8cda",damage:"#f5c96b",speed:"#ffe36c",split:"#9bffad",bounce:"#ec9df8"};const names={normal:"■",glass:"硝",armor:"強",coin:"金",bomb:"爆",iron:"鉄",monster:"敵",moving:"動",boss:"王",movingBoss:"動王",damage:"力",speed:"速",split:"分",bounce:"跳"};const w=customBoard.width/8,h=customBoard.height/10;customCtx.fillStyle="#0b1830";customCtx.fillRect(0,0,customBoard.width,customBoard.height);for(let i=0;i<80;i++){const x=i%8*w,y=Math.floor(i/8)*h,v=customCells[i];customCtx.strokeStyle="#40516b";customCtx.strokeRect(x+.5,y+.5,w-1,h-1);if(v){customCtx.fillStyle=v.type==="glass"?"rgba(177,236,255,0.17)":colors[v.type];customCtx.fillRect(x+4,y+4,w-8,h-8);if(v.type==="glass"){customCtx.strokeStyle="rgba(216,250,255,0.85)";customCtx.lineWidth=2;customCtx.strokeRect(x+4,y+4,w-8,h-8);customCtx.beginPath();customCtx.moveTo(x+9,y+17);customCtx.lineTo(x+22,y+5);customCtx.stroke()}customCtx.fillStyle=v.type==="glass"?"#e5fbff":"#14243b";customCtx.textAlign="center";customCtx.font="bold 17px sans-serif";customCtx.fillText(names[v.type],x+w/2,y+25);if(!["iron","damage","speed","split","bounce"].includes(v.type)){customCtx.font="12px sans-serif";customCtx.fillText(v.hp,x+w/2,y+42)}}}const count=customCells.filter(Boolean).length;$("customInfo").textContent=`配置数：${count} / 80　（同じマスをクリックすると上書きできます）`;const saved=$("customSaved");saved.replaceChildren();customList().forEach((a,i)=>{const load=document.createElement("button");load.textContent=`${i+1}. ${String(a.name||"無題").slice(0,24)} を開く`;load.onclick=()=>{customCells=Array.from({length:80},(_,k)=>validCustomCell(a.cells?.[k]));$("customName").value=String(a.name||"自作ステージ").slice(0,24);customSelected=i;renderCustomEditor()};saved.appendChild(load);const del=document.createElement("button");del.textContent="削除";del.onclick=()=>{if(!confirm("この自作ステージを削除しますか？"))return;const arr=customList();arr.splice(i,1);localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));customSelected=-1;renderCustomEditor()};saved.appendChild(del)})}
+customBoard.addEventListener("pointerdown",e=>{const rect=customBoard.getBoundingClientRect(),c=Math.floor((e.clientX-rect.left)/rect.width*8),r=Math.floor((e.clientY-rect.top)/rect.height*10);if(c<0||c>=8||r<0||r>=10)return;const type=$("customTool").value;customCells[r*8+c]=type==="erase"?null:{type,hp:Math.max(1,Math.min(999,Math.floor(Number($("customHp").value)||1)))};renderCustomEditor()});
+$("customStageBtn").onclick=()=>show("custom");$("customBack").onclick=()=>show("select");
+$("customClear").onclick=()=>{if(confirm("配置を全部消しますか？")){customCells=Array(80).fill(null);customSelected=-1;renderCustomEditor()}};
+$("customSave").onclick=()=>{const arr=customList(),entry={name:$("customName").value.trim().slice(0,24)||"自作ステージ",cells:customCells.map(validCustomCell)};if(customSelected>=0&&customSelected<arr.length)arr[customSelected]=entry;else{if(arr.length>=10){toast("保存できるのは10個までです");return}customSelected=arr.length;arr.push(entry)}try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));toast("自作ステージを保存しました");renderCustomEditor()}catch{toast("保存に失敗しました")}};
+function startCustomStage(){const layout=customPlaying||customCells.map(validCustomCell);if(!layout.some(v=>v&&["normal","bomb","glass","armor","coin","monster","moving","boss","movingBoss"].includes(v.type))){toast("壊せるブロックかモンスターを置いてください");return}customPlaying=layout.map(validCustomCell);const blocks=[],monsters=[],items=[];layout.forEach((v,i)=>{if(!v)return;const c=i%8,row=Math.floor(i/8);if(["normal","bomb","iron","glass","armor","coin"].includes(v.type))blocks.push({id:i,c,row,type:v.type,hp:v.type==="iron"?Infinity:v.hp,alive:true});else if(["monster","moving","boss","movingBoss"].includes(v.type))monsters.push({id:i,c,row,type:v.type,hp:v.hp,alive:true,dir:1});else items.push({id:i,c,row,type:v.type})});closeModal();show("play");paused=false;keys.clear();game={custom:true,n:1,blocks,monsters,items,balls:[],effects:[],shots:0,aim:-Math.PI/2,launchX:W/2,nextX:W/2,waiting:true,three:999,two:999,cleared:false};$("stageTitle").textContent="🛠️ 自作ステージ";updateStats();drawGame()}
+$("customPlay").onclick=()=>{customPlaying=customCells.map(validCustomCell);startCustomStage()};
+
+$("versusBtn").onclick=()=>show("online");
+
+$("onlineJoin").onclick=onlineConnect;
+$("onlineCreate").onclick=async()=>{if(onlineRoom){onlineStatus("現在のルームを退出してから、新しいルームを作成してください");return}const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%900000+100000);$("onlineRoomNumber").value=code;await onlineConnect()};
+$("onlineLeave").onclick=onlineLeave;
+$("onlineBack").onclick=()=>{show("select");void onlineLeave()};
+$("onlineChoose").onclick=()=>{show("versusChoose")};
+$("versusChooseBack").onclick=()=>{show("select");void onlineLeave()};$("versusDirectionBack").onclick=()=>{show("select");void onlineLeave()};
+$("versusReselect").onclick=nextVersusRound;
+$("versusStart").onclick=()=>{
+ if(versusSelected.some(i=>i<0))return;
+ for(let p=0;p<2;p++){
+  versusPlayers[p].ballType=versusSelected[p];
+  versusPlayers[p].hp=versusMaxHp(versusPlayers[p].ballType);
+ }
+ show("versus");
+};
+$("versusBack").onclick=()=>{show("select");void onlineLeave()};
+$("minigameBtn").onclick=()=>startMiniGame();
+$("rankingBtn").onclick=()=>show("ranking");$("renamePlayerBtn").onclick=()=>askPlayerName();
+$("newBtn").onclick=()=>{mode="new";show("slot")};$("continueBtn").onclick=()=>{mode="continue";show("slot")};
+document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{const target=b.dataset.open;if(screen==="skins"&&target==="select"&&resultReturn){const back=resultReturn;resultReturn=null;back();return}if(target==="settings")settingsBack=screen;show(target)});
+$("settingsBack").onclick=()=>{show(settingsBack);if(settingsBack==="play"){paused=true;pauseMenu()}};
+$("saveBtn").onclick=saveManual;$("returnBallsBtn").onclick=returnBalls;$("pauseBtn").onclick=pauseMenu;
+show("home");raf=requestAnimationFrame(loop);
+})();
+</script></body></html>
