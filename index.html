@@ -35,6 +35,9 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 .versus-choice{display:flex;align-items:center;flex-direction:column;gap:6px;min-height:125px;text-align:center}
 .versus-choice.chosen{border:3px solid #ffe27b;background:#305b83;box-shadow:0 0 12px #ffd85d66}
 .versus-choice small{font-size:12px;line-height:1.4}.versus-orb{display:grid;place-items:center;width:45px;height:45px;border-radius:50%;font-weight:bold;color:#152139;border:2px solid white;box-shadow:0 0 12px #a9dcff77}
+/* iPad限定：タップで狙い、専用ボタンで発射 */
+#ipadShootBtn{display:none;min-height:58px;min-width:220px;font-weight:800;font-size:19px;background:#1766b3;border:2px solid #94dcff;touch-action:manipulation}
+body.ipad-mode #ipadShootBtn{display:inline-block}
 </style></head>
 <body><div class="wrap">
 <section id="home" class="panel center"><canvas id="menuBg"></canvas><h1>スーパーボールクラッシュ</h1><p>SUPER BALL CRASH — 全50ステージ</p><div class="actions"><button id="newBtn">はじめから</button><button id="continueBtn">つづきから</button><button data-open="settings">設定</button></div><p class="note">星を集めてボールの見た目を解放しよう！</p></section>
@@ -43,11 +46,11 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 <section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。自作ステージはこのブラウザに最大10個保存できます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><button id="customSave">💾 保存</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
 <section id="onlineRoomScreen" class="panel hidden"><h2>🌐 オンライン対決・ルーム番号</h2><p class="note">別のパソコンの相手と同じ6桁の番号を入力してください。対戦にはSupabaseの匿名ログイン設定・SQL設定とインターネット接続が必要です。</p><div class="actions"><input id="onlineRoomNumber" inputmode="numeric" maxlength="6" placeholder="6桁のルーム番号" aria-label="ルーム番号" style="padding:12px;border-radius:8px;font-size:18px;max-width:230px"><button id="onlineJoin" type="button">ルームに参加</button><button id="onlineLeave" type="button">退出</button></div><p id="onlineStatus" class="note center" aria-live="polite">未接続</p><div class="actions"><button id="onlineChoose" type="button" class="hidden">ボールを選ぶ</button><button id="onlineBack" type="button">ステージ選択へ</button></div><p class="note">Supabase接続情報は設定済みです。オンライン対戦には同梱のSQL設定が必要です。</p></section>
 <section id="versusChooseScreen" class="panel hidden"><h2>⚔️ 対決用ボールを選ぼう！</h2><p class="note">相手のボールは、両方が決定するまで表示されません。</p><h3 id="versusChooseTitle">🔵 プレイヤー1のボールを選択</h3><div id="versusChoices1" class="versus-choices"></div><div id="versusChoices2" class="versus-choices hidden"></div><p id="versusChooseInfo" class="note center"></p><div class="actions"><button id="versusConfirm" type="button" disabled>このボールに決定</button><button id="versusStart" type="button" class="hidden" disabled>⚔️ フィールドへ進む</button><button id="versusChooseBack" type="button">ステージ選択に戻る</button></div></section>
-<section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">通常ステージと同じように、迷路の上でマウスを動かして狙い、クリックして決定してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">マウスで狙い、下のボタンで方向を決定してください。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
-<section id="versusScreen" class="panel hidden"><h2>⚔️ 3点先取の対決モード</h2><p class="note">8×10マスの対決フィールドです。灰色の鉄ブロックは壊せません。選んだ専用ボールで迷路に入ります。マウスで発射方向を決め、カウントダウン後に同時発射します。ボールは鉄ブロックや壁で反射します。ボールがぶつかるとダメージ！ HPが0になったらそのラウンドは負け。1ラウンドの制限時間は60秒。時間切れは引き分けで、両者に点数は入りません。先に3点で優勝です。</p><p id="versusRankInfo" class="center" style="font-weight:bold;color:#ffe27b">あなたの称号：🌱 見習い ／ 対戦ポイント：0pt</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">10 / 10 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">10 / 10 HP</strong></p><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
+<section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">通常ステージと同じように、迷路の上でマウスを動かして狙い、クリックして決定してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">マウスで狙い、Enterキーまたは下のボタンで方向を決定してください。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
+<section id="versusScreen" class="panel hidden"><h2>⚔️ 3点先取の対決モード</h2><p class="note">8×10マスの対決フィールドです。灰色の鉄ブロックは壊せません。選んだ専用ボールで迷路に入ります。マウスで発射方向を決め、カウントダウン後に同時発射します。ボールは鉄ブロックや壁で反射します。ボールがぶつかるとダメージ！ HPが0になったらそのラウンドは負け。1ラウンドの制限時間は60秒。時間切れは引き分けで、両者に点数は入りません。先に3点で優勝です。</p><p id="versusRankInfo" class="center" style="font-weight:bold;color:#ffe27b">あなたの称号：🌱 見習い ／ 対戦ポイント：0pt</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div id="versusAbilities" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0" aria-live="polite"><div id="versusAbility1" style="padding:12px;border:1px solid #46c7ff;border-radius:10px"></div><div id="versusAbility2" style="padding:12px;border:1px solid #ff7777;border-radius:10px"></div></div><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">10 / 10 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">10 / 10 HP</strong></p><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
 <section id="nationalRankScreen" class="panel hidden"><h2>🌏 全国対戦ポイントランキング TOP 100</h2><p class="note">全国のプレイヤーの対戦ポイント・称号を表示します。プレイヤーIDは公開しません。※オンラインランキングはインターネット接続とSupabaseのSQL設定が必要です。</p><p id="nationalRankStatus" class="note center" aria-live="polite">読み込み前</p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>称号</th><th>ポイント</th></tr></thead><tbody id="nationalRankRows"></tbody></table></div><div class="actions"><button id="nationalRankRefresh" type="button">🔄 更新</button><button data-open="select" type="button">戻る</button></div></section>
 <section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="select">戻る</button></div></section>
-<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><p class="note">マウス移動／← →：角度調整<br>左クリック／Space：発射<br>Esc：一時停止<br><br>💥 「爆」の下の数字＝爆発までの残りHP<br>HPが0になると周囲8マスに爆発</p><div class="actions"><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
+<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><p class="note">マウス移動／← →：角度調整<br>左クリック／Space：発射<br>Esc：一時停止<br><br>💥 「爆」の下の数字＝爆発までの残りHP<br>HPが0になると周囲8マスに爆発</p><div class="actions"><button id="ipadShootBtn" type="button">🚀 ボールを発射する</button><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
 <section id="skinsScreen" class="panel hidden"><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
 <section id="settingsScreen" class="panel hidden"><h2>設定</h2>
 <label><input type="checkbox" id="guideSetting"> 発射ガイド線を表示</label>
@@ -57,6 +60,7 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 <label>ゲーム全体の速さ <select id="gameSpeedSetting"><option value="1">1倍（通常）</option><option value="2">2倍（高速）</option></select></label>
 <div style="margin:14px 0;padding:12px;border:1px solid #64748b;border-radius:10px">
 <h3 style="margin:0 0 10px">🔊 サウンド設定</h3>
+<label><input type="checkbox" id="bgmEnabledSetting" checked> 🎵 電子音楽（BGM）を再生する</label>
 <label>音量 <input id="soundVolumeSetting" type="range" min="0" max="100" step="5" value="100"> <span id="soundVolumeValue">100%</span></label>
 <label>音の雰囲気 <select id="soundStyleSetting"><option value="normal">標準</option><option value="soft">やわらかい音</option><option value="bright">明るい音</option></select></label>
 <label>試しに聞く音 <select id="soundPreviewType"><option value="button">ボタン</option><option value="launch">ボール発射</option><option value="wall">壁への衝突</option><option value="blockhit">ブロックへの衝突</option><option value="monsterhit">モンスターへの衝突</option><option value="block">ブロック破壊</option><option value="bomb">爆発</option><option value="item">アイテム取得</option><option value="monster">モンスター撃破</option><option value="clear">ステージクリア</option></select></label>
@@ -70,7 +74,7 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 const W=480,H=680,COLS=8,ROWS=10,CW=54,CH=45,X0=24,Y0=62,BASEY=632,KEY="super-ball-crash-v1";
 const $=id=>document.getElementById(id), canvas=$("board"),ctx=canvas.getContext("2d");
 const screens={custom:$("customStageScreen"),versusDirection:$("versusDirectionScreen"),online:$("onlineRoomScreen"),home:$("home"),slot:$("slotScreen"),select:$("selectScreen"),play:$("playScreen"),skins:$("skinsScreen"),settings:$("settingsScreen"),ranking:$("rankingScreen"),nationalRank:$("nationalRankScreen"),versus:$("versusScreen"),versusChoose:$("versusChooseScreen")};
-const DEFAULT_SETTINGS={guide:true,brightness:"normal",effects:"normal",aim:"normal",gameSpeed:"1",soundVolume:100,soundStyle:"normal"};
+const DEFAULT_SETTINGS={guide:true,brightness:"normal",effects:"normal",aim:"normal",gameSpeed:"1",soundVolume:100,soundStyle:"normal",bgmEnabled:true};
 const SKINS=[
 ["通常","#ffffff","plain"],["レッド","#ff5e72","plain"],["ブルー","#50b7ff","plain"],
 ["スター","#ffe168","star"],["ストライプ","#bc89ff","stripe"],["グリーン","#60f5a8","plain"],
@@ -104,7 +108,7 @@ store.miniRanking=Array.isArray(store.miniRanking)?store.miniRanking.filter(r=>r
 
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch{toast("保存できません。ブラウザの保存設定を確認してください")}}
 function toast(s){const el=$("toast");el.textContent=s;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600)}
-function show(s){screen=s;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==s));if(s==="select"){renderSelect();updateVersusRankDisplay();void syncNationalRanking();}if(s==="skins")renderSkins();if(s==="settings")renderSettings();if(s==="slot")renderSlots();if(s==="ranking")renderRanking();if(s==="nationalRank")void loadNationalRanking();if(s==="custom")renderCustomEditor();if(s==="versus")drawVersusBoard();if(s==="versusDirection")drawVersusAim();if(s==="versusChoose"){renderVersusChoices()}}
+function show(s){screen=s;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==s));if(s==="select"){renderSelect();updateVersusRankDisplay();void syncNationalRanking();}if(s==="skins")renderSkins();if(s==="settings")renderSettings();if(s==="slot")renderSlots();if(s==="ranking")renderRanking();if(s==="nationalRank")void loadNationalRanking();if(s==="custom")renderCustomEditor();if(s==="versus"){updateVersusAbilities();drawVersusBoard();}if(s==="versusDirection")drawVersusAim();if(s==="versusChoose"){renderVersusChoices()}}
 function modal(title,body,buttons){$("overlayTitle").textContent=title;$("overlayBody").innerHTML=body;$("overlayButtons").replaceChildren();buttons.forEach(([label,fn])=>{const b=document.createElement("button");b.textContent=label;b.onclick=fn;$("overlayButtons").appendChild(b)});$("overlay").classList.remove("hidden")}
 function closeModal(){$("overlay").classList.add("hidden")}
 function openResultSkins(){closeModal();resultReturn=()=>{show("play");if(game&&game.cleared){if(game.monsters.some(m=>m.alive&&m.row>=ROWS))showGameOverResult();else showClearResult()}};show("skins")}
@@ -459,7 +463,7 @@ function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);
  const bothBalls=ids.length===2&&ids.every(id=>value.players[id]?.ready===true);
  const bothDirections=bothBalls&&ids.every(id=>{const d=value.players[id]?.direction;return d&&Number.isFinite(d.x)&&Number.isFinite(d.y)&&Math.hypot(d.x,d.y)>.5});
  if(bothDirections&&value.startAt){onlineStartAt=value.startAt;ids.forEach((id,i)=>{versusPlayers[i].ballType=Math.max(0,Math.min(VERSUS_BALL_TYPES.length-1,Number(value.players[id].ball)||0));versusPlayers[i].hp=versusMaxHp(versusPlayers[i].ballType);versusPlayers[i].direction=value.players[id].direction});if(screen!=="versus")show("versus");return}
- if(bothBalls){if(screen!=="versusDirection")show("versusDirection");drawVersusAim();$("versusAimConfirm").disabled=!!onlineDirection;$("versusDirectionStatus").textContent=onlineDirection?"方向を決定しました。相手を待っています…":"マウスで狙い、『この方向で決定』を押してください。";return}
+ if(bothBalls){if(screen!=="versusDirection")show("versusDirection");drawVersusAim();$("versusAimConfirm").disabled=!!onlineDirection;$("versusDirectionStatus").textContent=onlineDirection?"方向を決定しました。相手を待っています…":"マウスで狙い、Enterキーまたは『この方向で決定』を押してください。";return}
  if(ids.length===2){if(screen!=="versusChoose")show("versusChoose");renderVersusChoices();if(onlineReady)$("versusChooseInfo").textContent="決定しました。相手を待っています…";}else if(screen==="versus"||screen==="versusDirection"||screen==="versusChoose")show("online");
  onlineStatus(ids.length===1?"参加しました。相手を待っています…":onlineReady?"ボール決定済み。相手を待っています…":"2人が接続しました。ボールを選んでください！");$("onlineChoose").classList.toggle("hidden",ids.length!==2||onlineReady);
 }
@@ -532,10 +536,22 @@ let versusRoundResult=null,versusCollisionCooldown=-1,versusRoundSubmitting=fals
 // 壁トラップは端末ごとに同じ衝突順序から生成する（Math.randomを使わない）。
 const VERSUS_WALL_TRAPS={poison:{chance:20,damage:2,label:"☠",color:"#9ef35a"},cactus:{chance:30,damage:1,label:"✹",color:"#91e47d"},burn:{chance:25,damage:2,label:"✦",color:"#ff9b54"},slow:{chance:30,slow:.65,label:"❄",color:"#b4eeff"},blackhole:{chance:25,slow:.6,label:"◎",color:"#aa91ed"},gold:{chance:15,damage:3,label:"✹",color:"#ffd34a"},pearl:{chance:20,heal:2,label:"✧",color:"#f7ebda"},tornado:{chance:25,boost:1.3,label:"➤",color:"#9de0bf"}};
 function versusTrapRoll(owner,count,axis){let n=Math.imul((count+1)*131+(owner+1)*997+(axis+1)*719,2654435761)>>>0;n^=n>>>16;n=Math.imul(n,2246822519)>>>0;return (n>>>8)%100;}
+function updateVersusAbilities(){
+ for(let i=0;i<2;i++){
+  const p=versusPlayers[i],ball=VERSUS_BALL_TYPES[p.ballType]||VERSUS_BALL_TYPES[0];
+  const el=$("versusAbility"+(i+1));if(!el)return;
+  el.replaceChildren();
+  const head=document.createElement("strong");head.textContent=(i===0?"🔵":"🔴")+" プレイヤー"+(i+1)+(i===onlineSeat?"（自分）":aiVersusMode&&i===1?"（AI）":"（相手）")+"："+ball.name;
+  const desc=document.createElement("div");desc.textContent="✨ "+ball.desc;desc.style.marginTop="6px";
+  const hp=document.createElement("div");hp.textContent="最大HP："+versusMaxHp(p.ballType);hp.style.marginTop="4px";
+  el.append(head,desc,hp);
+ }
+}
 function updateVersusScore(){
  updateVersusRankDisplay();
  const wins=onlineRoomData?.wins||[0,0];
  $("versusScore").textContent=`🔵 ${wins[0]||0}勝　―　${wins[1]||0}勝 🔴　（3点先取）`;
+ updateVersusAbilities();
 }
 async function reportVersusResult(winner){if(onlineSeat!==0||versusRoundSubmitting||!onlineRoom||!onlineDb)return;versusRoundSubmitting=true;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"result",p_payload:{winner}});await refreshOnlineRoom()}catch(e){console.warn("対戦結果の保存に失敗",e)}finally{versusRoundSubmitting=false}}
 async function nextVersusRound(){if(aiVersusMode){if(!aiRoundHandled||onlineRoomData.champion!==null)return;aiRound++;aiRoundHandled=false;onlineStartAt=0;versusMotionKey="";versusRoundResult=null;onlineRoomData.round=aiRound;onlineRoomData.roundResult=null;onlineRoomData.startAt=null;onlineReady=false;onlineDirection=null;versusSelected[0]=-1;versusSelected[1]=-1;setVersusMaze(onlineRoom,aiRound);show("versusChoose");return;}if(!onlineRoom||!onlineDb||!onlineRoomData?.roundResult||onlineRoomData.champion!=null)return;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"next",p_payload:{}});await refreshOnlineRoom()}catch(e){onlineStatus("次のラウンドの準備に失敗: "+e.message)}}
@@ -565,13 +581,13 @@ function createVersusItems(){
 function simulateVersusMotion(){
  if(!onlineStartAt||Date.now()<onlineStartAt)return null;
  const key=onlineStartAt+":"+versusPlayers.map(p=>JSON.stringify(p.direction)).join(":");
- if(key!==versusMotionKey){versusMotionKey=key;versusTraps=[];versusItems=createVersusItems();versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*150*versusSpeed(p.ballType),vy:(p.direction?.y||0)*150*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
+ if(key!==versusMotionKey){versusMotionKey=key;versusTraps=[];versusItems=createVersusItems();versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*300*versusSpeed(p.ballType),vy:(p.direction?.y||0)*300*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
  const target=Math.min(VERSUS_ROUND_SECONDS,(Date.now()-onlineStartAt)/1000),step=1/120;
  // 同じ開始時刻と方向から双方の端末で同じ軌道を計算する。
  while(versusMotionTime+step<=target&&versusMotionState){
   for(let bi=0;bi<versusMotionState.length;bi++){const b=versusMotionState[bi];const nx=b.x+b.vx*step,ny=b.y+b.vy*step;
-   function blocked(x,y){if(x<24+12||x>24+8*54-12||y<30+12||y>30+10*54-12)return true;
-    for(const ox of [-11,11])for(const oy of [-11,11]){const col=Math.floor((x+ox-24)/54),row=Math.floor((y+oy-30)/54);if(row>=0&&row<10&&col>=0&&col<8&&VERSUS_MAZE[row][col]==="#")return true}return false}
+   function blocked(x,y){if(x<24+11||x>24+8*54-11||y<30+11||y>30+10*54-11)return true;
+    for(const ox of [-10,10])for(const oy of [-10,10]){const col=Math.floor((x+ox-24)/54),row=Math.floor((y+oy-30)/54);if(row>=0&&row<10&&col>=0&&col<8&&VERSUS_MAZE[row][col]==="#")return true}return false}
    const wallX=blocked(nx,b.y),wallY=blocked(b.x,ny);
    if(wallX)b.vx=-b.vx;else b.x=nx;
    if(wallY)b.vy=-b.vy;else b.y=ny;
@@ -592,7 +608,7 @@ function simulateVersusMotion(){
    if(item.taken)continue;
    for(let bi=0;bi<2;bi++){
     const ball=versusMotionState[bi];
-    if(Math.hypot(ball.x-item.x,ball.y-item.y)>27)continue;
+    if(Math.hypot(ball.x-item.x,ball.y-item.y)>25)continue;
     item.taken=true;
     if(item.type==="heal")ball.hp=Math.min(versusMaxHp(versusPlayers[bi].ballType),ball.hp+3);
     else if(item.type==="boost"){ball.vx*=1.25;ball.vy*=1.25}
@@ -615,7 +631,7 @@ function simulateVersusMotion(){
   versusTraps=versusTraps.filter(t=>!t.used&&versusMotionTime<=t.expires);
   // 衝突時は双方に1ダメージ。連続接触で一瞬にHPがなくならないよう間隔を空ける。
   const a=versusMotionState[0],b=versusMotionState[1];
-  if(Math.hypot(a.x-b.x,a.y-b.y)<34 && versusMotionTime-versusCollisionCooldown>.65){
+  if(Math.hypot(a.x-b.x,a.y-b.y)<22 && versusMotionTime-versusCollisionCooldown>.65){
    versusCollisionCooldown=versusMotionTime;
    const dx=a.x-b.x,dy=a.y-b.y,len=Math.hypot(dx,dy)||1;
    const avx=a.vx,avy=a.vy;a.vx=b.vx;a.vy=b.vy;b.vx=avx;b.vy=avy;
@@ -698,8 +714,8 @@ function drawVersusBoard(){
  for(const {col,row,color,label,hp,ballType} of versusPlayers){
   const index=Number(label)-1,cx=moving?moving[index].x:left+(col+.5)*cell,cy=moving?moving[index].y:top+(row+.5)*cell;
   if(screen==="versusDirection"&&index!==onlineSeat)continue;
-  x.beginPath();x.arc(cx,cy,17,0,Math.PI*2);x.fillStyle=VERSUS_BALL_TYPES[ballType].color;x.fill();x.strokeStyle=color;x.lineWidth=3;x.stroke();
-  x.fillStyle="#10243c";x.font="bold 17px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(VERSUS_BALL_TYPES[ballType].symbol,cx,cy);
+  x.beginPath();x.arc(cx,cy,11,0,Math.PI*2);x.fillStyle=VERSUS_BALL_TYPES[ballType].color;x.fill();x.strokeStyle=color;x.lineWidth=3;x.stroke();
+  x.fillStyle="#10243c";x.font="bold 11px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(VERSUS_BALL_TYPES[ballType].symbol,cx,cy);
   if(onlineStartAt&&Date.now()>=onlineStartAt&&versusPlayers.some(p=>p.direction)){
     
   }
@@ -724,8 +740,9 @@ function renderSkins(){const total=starsTotal(),el=$("skins");el.replaceChildren
  b.onclick=()=>{if(!owned){if(data().gems<c.price)return;data().gems-=c.price;data().gemSkins.push(i)}data().activeGemSkin=i;data().activeCoinSkin=-1;persist();renderSkins()};gems.appendChild(b)});
  $('skinInfo').textContent+=` ・ 🪙 ${data().coins.toLocaleString()}コイン ・ 💎 ${data().gems.toLocaleString()}ジェム`;
 }
-function renderSettings(){const s=store.settings;$("guideSetting").checked=s.guide;$("brightnessSetting").value=s.brightness;$("effectsSetting").value=s.effects;$("aimSetting").value=s.aim;$("gameSpeedSetting").value=s.gameSpeed||"1";$("soundVolumeSetting").value=s.soundVolume??100;$("soundVolumeValue").textContent=(s.soundVolume??100)+"%";$("soundStyleSetting").value=s.soundStyle||"normal"}
+function renderSettings(){const s=store.settings;$("bgmEnabledSetting").checked=s.bgmEnabled!==false;$("guideSetting").checked=s.guide;$("brightnessSetting").value=s.brightness;$("effectsSetting").value=s.effects;$("aimSetting").value=s.aim;$("gameSpeedSetting").value=s.gameSpeed||"1";$("soundVolumeSetting").value=s.soundVolume??100;$("soundVolumeValue").textContent=(s.soundVolume??100)+"%";$("soundStyleSetting").value=s.soundStyle||"normal"}
 for(const [id,key] of [["guideSetting","guide"],["brightnessSetting","brightness"],["effectsSetting","effects"],["aimSetting","aim"],["gameSpeedSetting","gameSpeed"]])$(id).addEventListener("change",e=>{store.settings[key]=key==="guide"?e.target.checked:e.target.value;persist()});
+$("bgmEnabledSetting").addEventListener("change",e=>{store.settings.bgmEnabled=e.target.checked;persist();if(e.target.checked)enableBlockSound();});
 $("soundVolumeSetting").addEventListener("input",e=>{store.settings.soundVolume=Number(e.target.value);$("soundVolumeValue").textContent=e.target.value+"%";updateSoundOutput();persist()});
 $("soundStyleSetting").addEventListener("change",e=>{store.settings.soundStyle=e.target.value;updateSoundOutput();persist()});
 $("soundPreviewButton").addEventListener("click",()=>{
@@ -767,8 +784,10 @@ for(let i=0;i<iron;i++){const idx=takeCell(row=>row<ROWS-1);blocks.push({id:coun
 // 強化ブロックは後半（ステージ26以降）の通常ステージにのみ出現する。
 const armorCount=n>=26?Math.min(count-explosives,1+Math.floor((n-26)/8)):0;
 // コインブロックは序盤から必ず登場。後半ほど少し増える。
-const coinCount=Math.min(Math.max(0,count-explosives-armorCount-1),n<11?2:n<26?3:4);
-for(let i=0;i<count;i++){const idx=takeCell(()=>true);blocks.push({id:i,c:idx%COLS,row:Math.floor(idx/COLS),type:i<explosives?"bomb":i<explosives+armorCount?"armor":i<explosives+armorCount+coinCount?"coin":"normal",hp:n,alive:true})}
+const coinCount=Math.min(Math.max(0,count-explosives-armorCount-2),n<11?2:n<26?3:4);
+// ガラスブロックは通常ステージにも必ず登場（ステージが進むほど増える）。
+const glassCount=Math.min(Math.max(0,count-explosives-armorCount-coinCount),n<11?1:n<26?2:n<41?3:4);
+for(let i=0;i<count;i++){const idx=takeCell(()=>true);blocks.push({id:i,c:idx%COLS,row:Math.floor(idx/COLS),type:i<explosives?"bomb":i<explosives+armorCount?"armor":i<explosives+armorCount+coinCount?"coin":i<explosives+armorCount+coinCount+glassCount?"glass":"normal",hp:n,alive:true})}
 for(let i=0;i<itemCount;i++){const idx=takeCell(()=>true);items.push({id:i,c:idx%COLS,row:Math.floor(idx/COLS),type:["damage","speed","split","bounce"][Math.floor(r()*4)]})}
 // 星の基準は発射した球の数ではなく「何回発射したか」。
 // 壁・鉄ブロック・他のブロックでの反射によって、1発射中に複数回当たることを考慮する。
@@ -776,7 +795,8 @@ for(let i=0;i<itemCount;i++){const idx=takeCell(()=>true);items.push({id:i,c:idx
 const normalBlocks=blocks.filter(b=>b.type==="normal");
 const bombBlocks=blocks.filter(b=>b.type==="bomb");
 const armorBlocks=blocks.filter(b=>b.type==="armor");
-const totalDurability=normalBlocks.reduce((sum,b)=>sum+b.hp,0)+armorBlocks.reduce((sum,b)=>sum+b.hp*2,0)
+const glassBlocks=blocks.filter(b=>b.type==="glass");
+const totalDurability=normalBlocks.reduce((sum,b)=>sum+b.hp,0)+armorBlocks.reduce((sum,b)=>sum+b.hp*2,0)+glassBlocks.reduce((sum,b)=>sum+b.hp*.5,0)
  +bombBlocks.reduce((sum,b)=>sum+b.hp*.55,0)
  +monsters.reduce((sum,m)=>sum+m.hp,0);
 const occupiedRatio=(blocks.length+monsters.length)/80;
@@ -788,7 +808,7 @@ const estimatedWork=totalDurability*(.90-Math.min(.12,bombBlocks.length*.012));
 const baseShots=estimatedWork/estimatedHitsPerShot;
 // 後半ほど基準を甘くしない。反射が増えるぶんを上の計算に含めている。
 const lateFactor=Math.max(0,Math.min(1,(n-20)/30)); // ステージ21以降は後半ほど星の発射回数を厳しくする。
- const three=Math.max(2,Math.floor(baseShots*(.64-.35*lateFactor)));
+ const three=n===50?10:Math.max(2,Math.floor(baseShots*(.64-.35*lateFactor)));
 const two=three+Math.max(2,Math.ceil(baseShots*(.22-.12*lateFactor)));
 game={n,blocks,monsters,items,balls:[],effects:[],shots:0,aim:-Math.PI/2,launchX:W/2,nextX:W/2,waiting:true,three,two,cleared:false};
 $("stageTitle").textContent=`STAGE ${n}`;updateStats();drawGame()}
@@ -858,7 +878,7 @@ function miniTurnEnd(){
  miniSpawn();
  g.waiting=true;g.manualTarget=null;g.nextX=g.launchX;updateStats();
 }
-function updateStats(){if(!game)return;const g=game,remaining=g.blocks.filter(b=>b.alive&&b.type!=="iron"&&b.type!=="coin").length,remainingMonsters=g.monsters.filter(m=>m.alive).length;$("stats").innerHTML=g.mini?`ミニゲーム版<br>耐えた回数：${g.miniTurns}<br>自己ベスト：${store.miniBest}回<br>コイン：${store.miniCoins}枚<br>残りブロック：${remaining}<br>発射回数：${g.shots}<br>発射時の球：${g.miniBalls}個<br>基本ダメージ：1`:`残りブロック：${remaining}<br>残りモンスター：${remainingMonsters}<br>発射回数：${g.shots}<br>星3個：${g.three}回以内<br>星2個：${g.two}回以内<br>星1個：クリアすれば獲得<br>発射時の球：${skinPower().balls}個<br>基本ダメージ：${skinPower().damage}<br>所持コイン：${data().coins}枚<br>飛行中の球：${g.balls.length}${MANUAL_KINDS.has(skinPower().kind)?`<br>手動能力：${g.manualUsed?"使用済み":g.manualTarget?"クリックで対象指定":g.waiting?"発射後にスペース":"スペースで発動"}`:""}`;$("saveBtn").disabled=!!g.mini||!!g.custom||!g.waiting||g.cleared}
+function updateStats(){if(!game)return;const g=game,remaining=g.blocks.filter(b=>b.alive&&b.type!=="iron"&&b.type!=="coin").length,remainingMonsters=g.monsters.filter(m=>m.alive).length;$("stats").innerHTML=g.mini?`ミニゲーム版<br>耐えた回数：${g.miniTurns}<br>自己ベスト：${store.miniBest}回<br>コイン：${store.miniCoins}枚<br>残りブロック：${remaining}<br>発射回数：${g.shots}<br>発射時の球：${g.miniBalls}個<br>基本ダメージ：1`:`残りブロック：${remaining}<br>残りモンスター：${remainingMonsters}<br>発射回数：${g.shots}<br>星3個：${g.three}回以内<br>星2個：${g.two}回以内<br>星1個：クリアすれば獲得<br>発射時の球：${skinPower().balls}個<br>基本ダメージ：${skinPower().damage}<br>所持コイン：${data().coins}枚<br>飛行中の球：${g.balls.length}${MANUAL_KINDS.has(skinPower().kind)?`<br>手動能力：${g.manualUsed?"使用済み":g.manualTarget?"クリックで対象指定":g.waiting?"発射後にスペース":"スペースで発動"}`:""}`;$("saveBtn").disabled=!!g.mini||!!g.custom||!g.waiting||g.cleared;$("ipadShootBtn").disabled=!g.waiting||g.cleared||paused}
 function saveManual(){if(!game||game.mini||!game.waiting||game.cleared){toast("ステージ開始時かクリア時のみセーブできます");return}data().checkpoint=game.n;persist();toast("進行状況を保存しました（ステージ開始地点から再開）")}
 function shoot(){const g=game;if(!g||!g.waiting||paused||screen!=="play"||!$("overlay").classList.contains("hidden"))return;playBallLaunchSound();g.shots++;g.waiting=false;g.manualUsed=false;g.manualTarget=null;g.manualBarrier=0;g.manualTime=0;const speed=330,power=g.mini?{balls:g.miniBalls,damage:1}:skinPower();g.balls=[];g.volleyQueue=Array.from({length:power.balls},(_,i)=>({delay:i*.075,x:g.nextX,y:BASEY,vx:Math.cos(g.aim)*speed,vy:Math.sin(g.aim)*speed,damage:power.damage*(power.kind==="king"&&i===4?2:1)*(power.kind==="magic"?(1+Math.random()):1)+(power.kind==="royal"&&i%5===4?5:0),baseDamage:power.damage*(power.kind==="king"&&i===4?2:1)*(power.kind==="magic"?(1+Math.random()):1)+(power.kind==="royal"&&i%5===4?5:0),special:g.mini?null:(power.kind||null),shotIndex:i,angelUsed:false,gemHits:{},copyUsed:false,drillHits:{},starBoost:false,splitDone:false,hitCount:0,boomerangUsed:false,damageStacks:0,speedMul:1,bounceCharges:0,used:new Set(),r:7,history:[],manualStop:0,manualSpeed:0}));updateStats()}
 const MANUAL_KINDS=new Set(['manual_burst','manual_stop','manual_return','manual_target','manual_speed','manual_teleport','manual_barrier','manual_sniper','manual_reverse','manual_rewind']);
@@ -926,7 +946,36 @@ function returnBalls(){
  toast("すべてのボールを回収しました");
 }
 function aimByPointer(e){if(!game||!game.waiting||paused)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*W/rect.width,y=(e.clientY-rect.top)*H/rect.height;let a=Math.atan2(y-BASEY,x-game.nextX);game.aim=Math.max(-Math.PI+.12,Math.min(-.12,a))}
-canvas.addEventListener("pointermove",aimByPointer);canvas.addEventListener("pointerdown",e=>{if(manualClick(e))return;aimByPointer(e);shoot()});
+// iPadOSはデスクトップ用サイト表示時にMacとして識別されるためタッチ点数も確認する。
+const isIPadDevice=/iPad/i.test(navigator.userAgent)||(/Macintosh|MacIntel/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
+if(isIPadDevice)document.body.classList.add("ipad-mode");
+$("ipadShootBtn").addEventListener("click",()=>shoot());
+canvas.addEventListener("pointermove",aimByPointer);
+canvas.addEventListener("pointerdown",e=>{
+ if(manualClick(e))return;
+ aimByPointer(e);
+ // iPadでは盤面・ボールのタップは照準調整のみ。発射は専用ボタンだけ。
+ if(isIPadDevice)return;
+ shoot();
+});
+// 対戦の方向選択中はEnterキーでも「この方向で決定」と同じ操作を行う。
+document.addEventListener("keydown",e=>{
+ if(e.key!=="Enter"||e.repeat||screen!=="versusDirection")return;
+ if(e.target instanceof HTMLElement&&["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName))return;
+ e.preventDefault();
+ if(!$("versusAimConfirm").disabled)confirmAim();
+});
+// 通常ステージのクリア結果が表示されている間だけ、Enterで次へ進む。
+document.addEventListener("keydown",e=>{
+ if(e.key!=="Enter"||e.repeat||screen!=="play"||!game||!game.cleared||game.custom||game.mini||game.n>=50)return;
+ const overlay=$("overlay");
+ if(overlay.classList.contains("hidden"))return;
+ if(e.target instanceof HTMLElement&&["INPUT","TEXTAREA","SELECT","BUTTON"].includes(e.target.tagName))return;
+ const nextButton=Array.from($("overlayButtons").querySelectorAll("button")).find(b=>b.textContent==="次のステージ");
+ if(!nextButton)return;
+ e.preventDefault();
+ nextButton.click();
+});
 document.addEventListener("keydown",e=>{if(["ArrowLeft","ArrowRight","Space","Escape"].includes(e.code)&&screen==="play")e.preventDefault();keys.add(e.code);if(e.repeat)return;if(e.code==="Escape"&&screen==="play"){if(!$("overlay").classList.contains("hidden"))closeModal();else pauseMenu();return}if(e.code==="Space"){if(game&&!game.waiting)manualAction();else shoot()}});
 document.addEventListener("keyup",e=>keys.delete(e.code));window.addEventListener("blur",()=>keys.clear());
 function circleRect(b,x,y,w,h){const px=Math.max(x,Math.min(b.x,x+w)),py=Math.max(y,Math.min(b.y,y+h));return(b.x-px)**2+(b.y-py)**2<=b.r*b.r}
@@ -967,6 +1016,36 @@ function enableBlockSound(){
  }catch(e){}
 }
 document.addEventListener("pointerdown",enableBlockSound,{passive:true});
+
+// 軽量なWeb Audio API電子音楽。外部音声ファイルは使わない。
+const bgmThemes={
+ home:[[0,4,7,12],[0,3,7,10],[-2,2,5,10],[-5,0,4,7]],
+ play:[[0,4,7,11],[5,9,12,16],[7,11,14,19],[2,5,9,12]],
+ versus:[[0,3,7,12],[-2,2,5,10],[-4,0,3,8],[-5,-1,2,7]]
+};
+let bgmTick=0,bgmTimer=null,bgmLastTheme="";
+function bgmTheme(){return ["versus","versusChoose","versusDirection","online"].includes(screen)?"versus":screen==="play"?"play":"home";}
+function bgmNote(freq,start,duration,volume,wave="triangle"){
+ const ac=blockSoundContext;if(!ac||ac.state!=="running")return;
+ const osc=ac.createOscillator(),env=ac.createGain();osc.type=wave;osc.frequency.setValueAtTime(freq,start);
+ env.gain.setValueAtTime(0,start);env.gain.linearRampToValueAtTime(volume,start+0.014);
+ env.gain.exponentialRampToValueAtTime(0.0001,start+duration);
+ osc.connect(env);env.connect(soundFilter||soundDestination());osc.start(start);osc.stop(start+duration+0.015);
+}
+function bgmStep(){
+ if(!store||store.settings.bgmEnabled===false||document.hidden||!blockSoundContext||blockSoundContext.state!=="running")return;
+ const theme=bgmTheme();if(theme!==bgmLastTheme){bgmTick=0;bgmLastTheme=theme;}
+ const chord=bgmThemes[theme][Math.floor(bgmTick/8)%4],base=theme==="versus"?196:theme==="play"?220:174.61;
+ const note=chord[[0,1,2,1,3,2,1,2][bgmTick%8]],t=blockSoundContext.currentTime+0.015;
+ bgmNote(base*Math.pow(2,note/12),t,0.16,0.035,"triangle");
+ if(bgmTick%4===0)bgmNote(base/2*Math.pow(2,chord[0]/12),t,0.33,0.045,"sine");
+ bgmTick++;
+}
+function startBgmClock(){if(!bgmTimer)bgmTimer=setInterval(bgmStep,themeClockMs());}
+function themeClockMs(){return 220;}
+
+document.addEventListener("pointerdown",startBgmClock,{once:true,passive:true});
+document.addEventListener("keydown",startBgmClock,{once:true});
 // すべてのボタン（後から生成されるボタンも含む）の決定音
 let uiSoundLast=-1,shootSoundLast=-1;
 function playUIButtonSound(){
@@ -1221,7 +1300,7 @@ for(const item of g.items){if(item.collected)continue;const x=X0+(item.c+.5)*CW,
 
 g.balls=g.balls.filter(b=>{if(b.y-b.r>H){if((g.manualBarrier||0)>0||(b.bounceCharges||0)>0||b.bounceReady||((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed)){if((b.special==="shield"||b.special==="boomerang"||b.special==="phoenix")&&!b.boomerangUsed){b.boomerangUsed=true;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));return true}if((g.manualBarrier||0)>0){b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#80e6b8");return true}b.bounceCharges=Math.max(0,(b.bounceCharges||1)-1);b.bounceReady=b.bounceCharges>0;b.itemBounce=b.bounceReady;b.y=H-b.r;b.vy=-Math.max(180,Math.abs(b.vy));burst(b.x,b.y,"#ff9df4");return true}g.launchX=Math.max(12,Math.min(W-12,b.x));return false}return true}).concat(g.pending);
 g.effects=g.effects.filter(p=>{p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;return p.life>0});
-if(!g.mini&&g.monsters.every(m=>!m.alive)&&g.blocks.every(b=>!b.alive||b.type==="iron"||b.type==="bomb"||b.type==="coin")){finishStage();return}
+if(!g.mini&&g.monsters.every(m=>!m.alive)&&g.blocks.every(b=>!b.alive||b.type==="iron"||b.type==="coin")){finishStage();return}
 if(!g.balls.length&&!(g.volleyQueue&&g.volleyQueue.length)){if(g.mini){g.items=g.items.filter(item=>!item.collected&&!item.usedThisVolley);miniTurnEnd();return}advanceMonsters();if(g.cleared)return;g.waiting=true;g.nextX=g.launchX;updateStats()}
 }
 // ステージクリア時の短いファンファーレ（外部ファイル不要）
