@@ -38,7 +38,7 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 .online-rank-actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px;flex-wrap:wrap}.online-rank-actions button{flex:0 1 auto}@media(max-width:480px){.online-rank-actions button{flex:1 1 100%}}
 /* iPad限定：タップで狙い、専用ボタンで発射 */
 #ipadShootBtn{display:none;min-height:58px;min-width:220px;font-weight:800;font-size:19px;background:#1766b3;border:2px solid #94dcff;touch-action:manipulation}
-body.touch-mode #ipadShootBtn{display:inline-block}
+body.touch-mode #ipadShootBtn{display:block;width:100%;margin:0 0 10px}
 #selectScreen .player-name-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;justify-content:flex-start;flex-wrap:wrap}
 #selectScreen .player-name-label{font-weight:700;color:#eaf6ff;overflow-wrap:anywhere}
 #rulebookBtn{margin-left:auto;font-weight:700;background:#254c7c;border-color:#92caff}#rulebookBtn:hover{background:#38669b}.rulebook-body{line-height:1.75;text-align:left}.rulebook-body h3{margin:14px 0 5px;color:#9ae9ff}.rulebook-body p{margin:4px 0 10px}.rulebook-body ul{padding-left:22px;margin:4px 0 12px}#renamePlayerBtn{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:0;font-size:19px;line-height:1;flex:none}
@@ -111,7 +111,7 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <section id="nationalRankScreen" class="panel hidden"><h2>🌏 全国対戦ポイントランキング TOP 100</h2><p class="note">全国のプレイヤーの対戦ポイント・称号を表示します。プレイヤーIDは公開しません。※オンラインランキングはインターネット接続とSupabaseのSQL設定が必要です。</p><p id="nationalRankStatus" class="note center" aria-live="polite">読み込み前</p><p id="nationalMyRank" class="note center" aria-live="polite"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>称号</th><th>ポイント</th></tr></thead><tbody id="nationalRankRows"></tbody></table></div><div class="actions"><button id="nationalRankRefresh" type="button">🔄 更新</button><button data-open="online" type="button">戻る</button></div></section>
 <section id="rankTitlesScreen" class="panel hidden"><h2>👑 称号一覧</h2><p class="note">対決ポイントで獲得できる称号です。各称号に初めて昇格したときだけ1000コインを獲得できます。</p><p id="rankTitlesCurrent" class="center"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>必要ポイント</th><th>称号</th></tr></thead><tbody id="rankTitlesRows"></tbody></table></div><div class="actions"><button data-open="online" type="button">ルーム画面に戻る</button></div></section>
 <section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingMyRank" class="note"></p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="rankingHub">戻る</button></div></section>
-<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><div class="actions"><button id="ipadShootBtn" type="button">🚀 発射！</button><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
+<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><button id="ipadShootBtn" type="button">🚀 発射！</button><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><div class="actions"><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
 <section id="skinsScreen" class="panel hidden"><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
 <section id="settingsScreen" class="panel hidden"><h2>設定</h2>
 <label><input type="checkbox" id="guideSetting"> 発射ガイド線を表示</label>
@@ -1367,8 +1367,8 @@ if(isTouchDevice){
  document.body.classList.add("touch-mode");
  const hint=document.createElement("p");
  hint.id="mobileAimHint";hint.className="note center";
- hint.textContent="📱 盤面をタップして狙いを決め、下の「🚀 発射！」を押してください";
- $("ipadShootBtn").parentElement.before(hint);
+ hint.textContent="📱 盤面をタップして狙いを決め、上の「🚀 発射！」を押してください";
+ $("ipadShootBtn").after(hint);
 }
 $("ipadShootBtn").addEventListener("click",()=>shoot());
 canvas.addEventListener("pointermove",aimByPointer);
