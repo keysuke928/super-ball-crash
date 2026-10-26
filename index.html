@@ -103,10 +103,10 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <body><div class="wrap">
 <section id="home" class="panel center"><canvas id="menuBg"></canvas><h1>スーパーボールクラッシュ</h1><p>SUPER BALL CRASH — 全50ステージ</p><div class="actions"><button id="newBtn">はじめから</button><button id="continueBtn">つづきから</button><button data-open="settings">設定</button></div><p class="note">星を集めてボールの見た目を解放しよう！</p></section>
 <section id="slotScreen" class="panel hidden"><h2 id="slotHeading">セーブデータ選択</h2><div id="slots" class="slots"></div><div class="actions"><button data-open="home">戻る</button></div></section>
-<section id="selectScreen" class="panel hidden"><div class="player-name-bar"><span id="playerNameTop" class="player-name-label">👤 名前</span><button id="renamePlayerBtn" type="button" title="プレイヤー名を変更" aria-label="プレイヤー名を変更">✏️</button><button id="rulebookBtn" type="button">📖 ルールブック</button></div><h2>ステージ選択</h2><p id="progressText"></p><div id="stages" class="stages"></div><div class="actions"><button type="button" disabled title="ショップは準備中です">ショップ（準備中）</button><button id="feedbackBtn" type="button">📝 ご意見を送る</button><button id="feedbackAdminBtn" type="button">📬 ご意見管理（管理人）</button><button id="adminCodeBtn" type="button">🔑 管理人用コード</button><button id="customStageBtn" type="button">🛠️ 自作ステージ</button><button id="versusBtn" type="button">⚔️ 対決モード</button><button id="aiVersusBtn" type="button">🤖 AIと対決</button><button id="minigameBtn" type="button" title="毎ターン3〜8個のブロックが落ちてくるモード">ミニゲーム版</button><button data-open="skins">ボールの見た目</button><button data-open="settings">設定</button><button data-open="home">タイトルへ</button></div><div class="actions" style="margin-top:22px"><button id="rankingHubBtn" type="button" style="min-width:220px">🏆 ランキング</button></div></section>
+<section id="selectScreen" class="panel hidden"><div class="player-name-bar"><span id="playerNameTop" class="player-name-label">👤 名前</span><button id="renamePlayerBtn" type="button" title="プレイヤー名を変更" aria-label="プレイヤー名を変更">✏️</button><button id="rulebookBtn" type="button">📖 ルールブック</button></div><h2>ステージ選択</h2><p id="progressText"></p><div id="stages" class="stages"></div><div class="actions"><button type="button" disabled title="ショップは準備中です">ショップ（準備中）</button><button id="feedbackBtn" type="button">📝 ご意見を送る</button><button id="feedbackReadBtn" type="button">📋 みんなのご意見を見る</button><button id="feedbackAdminBtn" type="button">📬 ご意見管理（管理人）</button><button id="adminCodeBtn" type="button">🔑 管理人用コード</button><button id="customStageBtn" type="button">🛠️ 自作ステージ</button><button id="communityStagesBtn" type="button">🌍 みんなの作品</button><button id="versusBtn" type="button">⚔️ 対決モード</button><button id="aiVersusBtn" type="button">🤖 AIと対決</button><button id="minigameBtn" type="button" title="毎ターン3〜8個のブロックが落ちてくるモード">ミニゲーム版</button><button data-open="skins">ボールの見た目</button><button data-open="settings">設定</button><button data-open="home">タイトルへ</button></div><div class="actions" style="margin-top:22px"><button id="rankingHubBtn" type="button" style="min-width:220px">🏆 ランキング</button></div></section>
 <section id="rankingHubScreen" class="panel hidden"><h2>🏆 ランキング</h2><p class="note">見たいランキングを選んでください。</p><div class="actions"><button id="rankingMiniBtn" type="button">🎮 ミニゲームランキング</button><button id="rankingCoinsBtn" type="button">🪙 コインランキング</button><button id="rankingGemsBtn" type="button">💎 ジェムランキング</button><button id="rankingTimeBtn" type="button">⏱️ プレイ時間ランキング</button></div><div class="actions"><button data-open="select" type="button">ステージ選択へ</button></div></section>
 <section id="currencyRankScreen" class="panel hidden"><h2 id="currencyRankTitle">ランキング</h2><p class="note" id="currencyRankStatus">読み込み中…</p><p class="note" id="currencyMyRank" aria-live="polite"></p><div style="overflow-x:auto"><table style="width:100%;text-align:left;border-collapse:collapse"><thead><tr><th>順位</th><th>プレイヤー名</th><th id="currencyRankUnit">所持数</th></tr></thead><tbody id="currencyRankRows"></tbody></table></div><p class="note">全国TOP100と、自分の順位（100位より下でも表示）を確認できます。全国ランキングはオンラインで集計します。プレイ時間はこのブラウザでゲームを開いている時間を記録します（過去の時間は含みません）。</p><div class="actions"><button id="currencyRankRefresh" type="button">🔄 更新</button><button id="currencyRankBack" type="button">ランキングに戻る</button></div></section>
-<section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。自作ステージはこのブラウザに最大10個保存できます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="rowHalf">横一列HP半減ブロック</option><option value="colHalf">縦一列HP半減ブロック</option><option value="push_right">強制移動：右 →</option><option value="push_left">強制移動：左 ←</option><option value="push_up">強制移動：前 ↑</option><option value="push_down">強制移動：後ろ ↓</option><option value="push_upLeft">強制移動：斜め左前 ↖</option><option value="push_upRight">強制移動：斜め右前 ↗</option><option value="push_downLeft">強制移動：斜め左後ろ ↙</option><option value="push_downRight">強制移動：斜め右後ろ ↘</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><button id="customSave">💾 保存</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
+<section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。編集内容は自動保存されます（この端末・ブラウザ内）。最大10作品まで作れます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="rowHalf">横一列HP半減ブロック</option><option value="colHalf">縦一列HP半減ブロック</option><option value="push_right">強制移動：右 →</option><option value="push_left">強制移動：左 ←</option><option value="push_up">強制移動：前 ↑</option><option value="push_down">強制移動：後ろ ↓</option><option value="push_upLeft">強制移動：斜め左前 ↖</option><option value="push_upRight">強制移動：斜め右前 ↗</option><option value="push_downLeft">強制移動：斜め左後ろ ↙</option><option value="push_downRight">強制移動：斜め右後ろ ↘</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><span class="note" id="customAutoStatus">✓ 自動保存</span><button id="customNew">＋ 新しい作品</button><button id="customShare">🌐 シェアする</button><button id="customUnshare">🔒 シェア解除</button><button id="customDeleteCurrent">🗑️ この作品を削除</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
 <section id="onlineRoomScreen" class="panel hidden"><h2>🌐 オンライン対決・ルーム番号</h2><p class="note"><strong>⚔️ オンライン対決のルール</strong><br>・相手と同じ6桁のルーム番号を入力して対決！<br>・先に3ポイント取ったプレイヤーが勝利！<br>・1ラウンドは60秒。時間切れは引き分け（両者0ポイント）。<br>・勝利：150コイン＋ランキング10ポイント／敗北：50コイン・ランキング10ポイント減少（0未満にはなりません）。<br>・途中退出した場合、報酬はありません。<br>・新しい称号に初めて昇格すると、1000コイン獲得！</p><div class="actions"><input id="onlineRoomNumber" inputmode="numeric" maxlength="6" placeholder="6桁のルーム番号" aria-label="ルーム番号" style="padding:12px;border-radius:8px;font-size:18px;max-width:230px"><button id="onlineJoin" type="button">ルームに参加</button><button id="onlineLeave" type="button">退出</button></div><p id="onlineStatus" class="note center" aria-live="polite">未接続</p><div class="actions"><button id="onlineChoose" type="button" class="hidden">ボールを選ぶ</button><button id="onlineBack" type="button">ステージ選択へ</button></div><div class="online-rank-actions"><button id="nationalRankBtn" type="button">🌏 対決ランキング</button><button id="rankTitlesBtn" type="button">👑 称号一覧</button></div></section>
 <section id="versusChooseScreen" class="panel hidden"><h2>⚔️ 対決用ボールを選ぼう！</h2><p class="note">相手のボールは、両方が決定するまで表示されません。</p><div class="actions"><button id="versusGacha" type="button">🎰 対決ボールガチャ（3kコイン）</button></div><p id="versusGachaInfo" class="note center">初期ボール3種類。ガチャで新しいボールを集めよう！</p><h3 id="versusChooseTitle">🔵 プレイヤー1のボールを選択</h3><div id="versusChoices1" class="versus-choices"></div><div id="versusChoices2" class="versus-choices hidden"></div><p id="versusChooseHp" class="center" style="font-size:19px;font-weight:bold;color:#ffe27b" aria-live="polite">ボールを選ぶとHPが表示されます</p><p id="versusChooseInfo" class="note center"></p><div class="actions"><button id="versusConfirm" type="button" disabled>このボールに決定</button><button id="versusStart" type="button" class="hidden" disabled>⚔️ フィールドへ進む</button><button id="versusChooseBack" type="button">ステージ選択に戻る</button></div></section>
 <section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">迷路をマウスで狙うか、スマホでは盤面をタップして方向を選び、下の「この方向で決定」を押してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">盤面をタップして狙い、下のボタンで方向を決定してください。PCではEnterキーも使えます。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
@@ -1167,7 +1167,7 @@ function drawVersusBoard(){
  }
 }
 
-// ご意見箱：一般プレイヤーは投稿のみ。閲覧はSupabase RLSで管理者UIDだけに制限。
+// ご意見箱：投稿と閲覧はプレイヤー全員に許可。削除は管理者だけ。
 let feedbackAdminDb=null;
 function feedbackSafeText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function feedbackAdminClient(){
@@ -1178,7 +1178,7 @@ function feedbackAdminClient(){
 }
 function openFeedbackForm(){
  modal("📝 ご意見箱",`<p>「もっとこうなればいいな！」というアイデアを送ってね。</p>
- <p class="note">投稿内容は管理人だけが読めます。ほかのプレイヤーには公開されません。名前・住所・電話番号・メールアドレスなどの個人情報は書かないでください。</p>
+ <p class="note">投稿内容はほかのプレイヤーも読むことができます。名前・住所・電話番号・メールアドレスなどの個人情報は書かないでください。</p>
  <label for="feedbackMessage">ゲームへのアイデア（500文字まで）</label>
  <textarea id="feedbackMessage" maxlength="500" rows="6" style="width:100%;box-sizing:border-box;font-size:16px" placeholder="例：ステージの種類を増やしてほしい！"></textarea>
  <p id="feedbackStatus" class="note" aria-live="polite"></p>`,[
@@ -1193,6 +1193,61 @@ function openFeedbackForm(){
    closeModal();toast("ご意見を送信しました！ありがとう！");
   }catch(e){status.textContent="送信できませんでした。インターネット接続と掲示板用SQLの設定を確認してください。"}
  }],["閉じる",closeModal]]);
+}
+async function toggleFeedbackHeart(id,button){
+ if(button.disabled)return;
+ button.disabled=true;
+ try{
+  await ensureNationalDb();
+  const {data,error}=await onlineDb.rpc("toggle_feedback_heart",{p_feedback_id:id});
+  if(error)throw error;
+  const result=typeof data==="string"?JSON.parse(data):data;
+  button.textContent=`${result.liked?"❤️":"🤍"} ${result.count}`;
+  button.setAttribute("aria-pressed",String(result.liked));
+  button.title=result.liked?"ハートを取り消す":"ハートをつける";
+ }catch(e){toast("ハートを更新できませんでした。SQLの設定を確認してください。")}
+ finally{button.disabled=false}
+}
+async function openFeedbackBoard(){
+ modal("📋 みんなのご意見掲示板",`<p class="note">みんなのアイデアを読んで、いいなと思った意見にハートをつけよう！ 自分の意見にはハートをつけられません。名前やプレイヤーIDは表示されません。</p><p id="feedbackPublicStatus" class="note" aria-live="polite">読み込み中…</p><div id="feedbackPublicList"></div>`,[["閉じる",closeModal]]);
+ const status=$("feedbackPublicStatus"),list=$("feedbackPublicList");
+ try{
+  await ensureNationalDb();
+  const {data:rows,error}=await onlineDb.from("player_feedback").select("id,message,created_at").order("created_at",{ascending:false}).limit(100);
+  if(error)throw error;
+  const {data:heartRows,error:heartError}=await onlineDb.rpc("get_feedback_hearts");
+  if(heartError)throw heartError;
+  if(!status||!list)return;
+  const hearts=new Map((heartRows||[]).map(r=>[Number(r.feedback_id),r]));
+  status.textContent=`新しい順に${rows.length}件表示（最大100件）`;
+  list.innerHTML=rows.length?rows.map(r=>{
+   const h=hearts.get(Number(r.id))||{heart_count:0,has_hearted:false,is_own:false};
+   const liked=!!h.has_hearted,own=!!h.is_own;
+   return `<div style="border:1px solid #8ca7b8;border-radius:9px;padding:10px;margin:8px 0;overflow-wrap:anywhere"><small>${feedbackSafeText(new Date(r.created_at).toLocaleString("ja-JP"))}</small><p style="white-space:pre-wrap">${feedbackSafeText(r.message)}</p><button type="button" class="feedback-heart-btn" data-feedback-id="${Number(r.id)}" aria-label="この意見にハート" aria-pressed="${liked}" ${own?"disabled title=\"自分の投稿にはハートできません\"":""} style="min-width:85px;min-height:42px;border-radius:12px">${liked?"❤️":"🤍"} ${Number(h.heart_count)||0}</button></div>`;
+  }).join(""):"まだ投稿はありません。";
+  list.querySelectorAll(".feedback-heart-btn").forEach(btn=>btn.addEventListener("click",()=>toggleFeedbackHeart(Number(btn.dataset.feedbackId),btn)));
+ }catch(e){if(status)status.textContent="読み込めませんでした。ハート用SQLの設定とインターネット接続を確認してください。";}
+}
+async function deleteFeedbackAdminMessage(id,button){
+ if(!Number.isSafeInteger(id)||id<1)return;
+ if(!confirm("このご意見を削除しますか？\n削除した投稿は元に戻せません。"))return;
+ const status=$("feedbackAdminStatus");
+ if(!status)return;
+ button.disabled=true;
+ status.textContent="削除中…";
+ try{
+  const db=feedbackAdminClient();
+  const {data,error}=await db.from("player_feedback").delete().eq("id",id).select("id");
+  if(error)throw error;
+  if(!data||data.length!==1)throw new Error("削除が許可されていません");
+  button.closest("[data-feedback-entry]")?.remove();
+  const count=$("feedbackAdminList")?.querySelectorAll("[data-feedback-entry]").length??0;
+  status.textContent=`削除しました。表示中のご意見：${count}件`;
+  if(count===0)$("feedbackAdminList").textContent="表示する投稿はありません。";
+ }catch(e){
+  status.textContent="削除できませんでした。管理人権限とSQLの削除設定を確認してください。";
+  button.disabled=false;
+ }
 }
 async function openFeedbackAdmin(){
  modal("📬 ご意見管理（管理人専用）",`<p class="note">管理人用のSupabaseメールアドレスとパスワードでログインしてください。通常のプレイヤーIDや管理人用コードだけでは閲覧できません。</p>
@@ -1211,12 +1266,16 @@ async function openFeedbackAdmin(){
    const {data:rows,error}=await db.from("player_feedback").select("id,message,created_at").order("created_at",{ascending:false}).limit(100);
    if(error)throw error;
    status.textContent=`管理人用のご意見：${rows.length}件（新しい順・最大100件）`;
-   $("feedbackAdminList").innerHTML=rows.length?rows.map(r=>`<div style="border:1px solid #8ca7b8;border-radius:9px;padding:10px;margin:8px 0;overflow-wrap:anywhere"><small>${feedbackSafeText(new Date(r.created_at).toLocaleString("ja-JP"))}</small><p style="white-space:pre-wrap">${feedbackSafeText(r.message)}</p></div>`).join(""):"まだ投稿はありません。";
+   $("feedbackAdminList").innerHTML=rows.length?rows.map(r=>`<div data-feedback-entry style="border:1px solid #8ca7b8;border-radius:9px;padding:10px;margin:8px 0;overflow-wrap:anywhere"><small>${feedbackSafeText(new Date(r.created_at).toLocaleString("ja-JP"))}</small><p style="white-space:pre-wrap">${feedbackSafeText(r.message)}</p><button type="button" class="feedback-delete-btn" data-feedback-id="${Number(r.id)}" style="min-height:40px;background:#a82d38;color:white;border-radius:8px">🗑 この投稿を削除</button></div>`).join(""):"まだ投稿はありません。";
+   $("feedbackAdminList").querySelectorAll(".feedback-delete-btn").forEach(button=>{
+    button.addEventListener("click",()=>deleteFeedbackAdminMessage(Number(button.dataset.feedbackId),button));
+   });
    $("feedbackAdminPassword").value="";
   }catch(e){status.textContent="閲覧できません。管理人アカウント・SQL設定を確認してください。";$("feedbackAdminList").replaceChildren()}
  }],["閉じる",closeModal]]);
 }
 $("feedbackBtn").onclick=openFeedbackForm;
+$("feedbackReadBtn").onclick=openFeedbackBoard;
 $("feedbackAdminBtn").onclick=openFeedbackAdmin;
 
 function renderSelect(){const d=data();$("playerNameTop").textContent=`👤 ${playerName(d)}`;$("progressText").textContent=`👤 ${playerName(d)} ／ 🪙 所持コイン：${compactMoney(d.coins)}枚 ／ 💎 所持ジェム：${compactMoney(d.gems)}個 ／ ${versusRankInfo().name}（${versusRankInfo().points}pt） ／ 到達ステージ ${d.unlocked} ／ 星 ${starsTotal()} / 150`;const el=$("stages");el.replaceChildren();for(let n=1;n<=50;n++){const b=document.createElement("button");b.disabled=n>d.unlocked;b.innerHTML=`${n}<br><small>${d.stars[n-1]>0?"★".repeat(d.stars[n-1])+"☆".repeat(3-d.stars[n-1]):n===d.unlocked?"挑戦可能":"🔒"}</small>`;b.onclick=()=>startStage(n);el.appendChild(b)}}
@@ -2011,12 +2070,127 @@ const CUSTOM_KEY="sbc-custom-stages-v1", customBoard=$("customCanvas"),customCtx
 let customCells=Array(80).fill(null),customSelected=-1,customPlaying=null;
 function customList(){try{const a=JSON.parse(localStorage.getItem(CUSTOM_KEY)||"[]");return Array.isArray(a)?a.slice(0,10):[]}catch{return []}}
 function validCustomCell(v){if(!v||typeof v!=="object")return null;const allowed=["normal","bomb","iron","glass","armor","coin","rowHalf","colHalf","monster","moving","boss","movingBoss","damage","speed","split","bounce",...Object.keys(PUSH_DIRECTIONS)];if(!allowed.includes(v.type))return null;return {type:v.type,hp:Math.max(1,Math.min(999,Math.floor(Number(v.hp)||1)))}}
+const CUSTOM_DRAFT_KEY="sbc-custom-draft-v1",CUSTOM_SHARE_KEY="sbc-custom-share-map-v1";
+let customAutosaveTimer=0,customBusy=false;
+function customShareMap(){try{return JSON.parse(localStorage.getItem(CUSTOM_SHARE_KEY)||"{}")}catch{return {}}}
+function customSaveMap(map){localStorage.setItem(CUSTOM_SHARE_KEY,JSON.stringify(map))}
+function customEntry(){return {name:$("customName").value.trim().slice(0,24)||"自作ステージ",cells:customCells.map(validCustomCell)}}
+function customDraft(){try{localStorage.setItem(CUSTOM_DRAFT_KEY,JSON.stringify({entry:customEntry(),selected:customSelected}));}catch{}}
+function customAutosave(){
+ customDraft();
+ const arr=customList();
+ if(customSelected<0){if(!customCells.some(Boolean)&&!$("customName").value.trim())return;
+  if(arr.length>=10){$("customAutoStatus").textContent="⚠ 10作品までです";return}
+  customSelected=arr.length;
+ }
+ if(customSelected>=arr.length&&arr.length>=10){$("customAutoStatus").textContent="⚠ 10作品までです";return}
+ arr[customSelected]=customEntry();
+ try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));$("customAutoStatus").textContent="✓ 自動保存しました"}catch{$("customAutoStatus").textContent="⚠ 保存に失敗しました"}
+}
+function scheduleCustomAutosave(){customDraft();$("customAutoStatus").textContent="保存中…";clearTimeout(customAutosaveTimer);customAutosaveTimer=setTimeout(()=>{customAutosave();renderCustomEditor()},350)}
+function restoreCustomDraft(){
+ try{const v=JSON.parse(localStorage.getItem(CUSTOM_DRAFT_KEY)||"null");if(!v)return;
+  customCells=Array.from({length:80},(_,i)=>validCustomCell(v.entry?.cells?.[i]));
+  customSelected=Number.isInteger(v.selected)?v.selected:-1;
+  $("customName").value=String(v.entry?.name||"自作ステージ").slice(0,24);
+ }catch{}
+}
+async function shareCustomStage(){
+ clearTimeout(customAutosaveTimer);customAutosave();
+ if(customSelected<0){toast("まずステージに何か配置してください");return}
+ if(!customCells.some(Boolean)){toast("何か配置してからシェアしてください");return}
+ const author=prompt("公開する作者名を入力してください（20文字まで・本名は使わないでね）",data()?.name||"プレイヤー");
+ if(author===null)return;
+ const name=author.trim().slice(0,20);
+ if(!name){toast("作者名を入力してください");return}
+ try{
+  await ensureNationalDb();
+  const map=customShareMap(),entry=customEntry(),payload={stage_name:entry.name,author_name:name,cells:entry.cells};
+  const id=map[customSelected];
+  let result;
+  if(id){
+   result=await onlineDb.from("shared_custom_stages").update(payload).eq("id",id).select("id").single();
+  }else{
+   result=await onlineDb.from("shared_custom_stages").insert(payload).select("id").single();
+  }
+  if(result.error)throw result.error;
+  map[customSelected]=result.data.id;customSaveMap(map);renderCustomEditor();toast("作品をシェアしました！");
+ }catch(e){toast("シェアできませんでした。共有ステージ用SQLと通信を確認してください")}
+}
+async function unshareCustomStage(index=customSelected){
+ const map=customShareMap(),id=map[index];if(!id){toast("この作品はシェアしていません");return}
+ if(!confirm("この作品のシェアを解除しますか？"))return;
+ try{
+  await ensureNationalDb();
+  const {data:removed,error}=await onlineDb.from("shared_custom_stages").delete().eq("id",id).select("id");
+  if(error)throw error;
+  if(!removed?.length){toast("解除できません。投稿した端末・アカウントで操作してください");return}
+  delete map[index];customSaveMap(map);renderCustomEditor();toast("シェアを解除しました");
+ }catch{toast("シェア解除に失敗しました")}
+}
+async function openCommunityStages(){
+ modal("🌍 みんなの作品",`<p class="note">作者名・ステージ名のどちらかだけでも検索できます。個人情報を書かないでね。</p>
+ <label>ステージ名 <input id="communityStageName" maxlength="24" placeholder="ステージ名（空欄でもOK）" style="font-size:16px;max-width:100%"></label>
+ <label>作者名 <input id="communityAuthorName" maxlength="20" placeholder="作者名（空欄でもOK）" style="font-size:16px;max-width:100%"></label>
+ <button id="communitySearchBtn" type="button">🔍 検索</button><p id="communityStatus" class="note"></p><div id="communityResults"></div>`,[["閉じる",closeModal]]);
+ $("communitySearchBtn").onclick=searchCommunityStages;
+ await searchCommunityStages();
+}
+async function searchCommunityStages(){
+ const status=$("communityStatus"),list=$("communityResults");if(!status||!list)return;
+ status.textContent="検索中…";list.replaceChildren();
+ try{
+  await ensureNationalDb();
+  let query=onlineDb.from("shared_custom_stages").select("id,stage_name,author_name,cells,created_at").order("created_at",{ascending:false}).limit(50);
+  const name=$("communityStageName").value.trim().replace(/[%_,]/g,"");
+  const author=$("communityAuthorName").value.trim().replace(/[%_,]/g,"");
+  if(name)query=query.ilike("stage_name",`%${name}%`);
+  if(author)query=query.ilike("author_name",`%${author}%`);
+  const {data:rows,error}=await query;if(error)throw error;
+  status.textContent=`${rows.length}件見つかりました（最大50件）`;
+  for(const entry of rows){
+   const box=document.createElement("div");box.style.cssText="border:1px solid #8ca7b8;border-radius:10px;padding:10px;margin:8px 0";
+   const label=document.createElement("p");label.textContent=`🎮 ${entry.stage_name}　✏️ ${entry.author_name}`;box.appendChild(label);
+   const btn=document.createElement("button");btn.textContent="▶ この作品で遊ぶ";btn.onclick=()=>{
+    const cells=Array.from({length:80},(_,i)=>validCustomCell(entry.cells?.[i]));
+    if(!cells.some(Boolean)){toast("この作品には配置がありません");return}
+    customPlaying=cells;startCustomStage();
+   };box.appendChild(btn);list.appendChild(box);
+  }
+ }catch{status.textContent="読み込めませんでした。共有ステージ用SQLの設定を確認してください"}
+}
+$("communityStagesBtn").onclick=openCommunityStages;
+async function deleteCustomStage(index){
+ clearTimeout(customAutosaveTimer);
+ const arr=customList();if(index<0||index>=arr.length){toast("削除する作品を選んでください");return}
+ const map=customShareMap(),sharedId=map[index];
+ const message=sharedId?"この作品を削除しますか？ 公開中の作品も『みんなの作品』から削除されます。元には戻せません。":"この作品を削除しますか？ 元には戻せません。";
+ if(!confirm(message))return;
+ if(sharedId){
+  try{
+   await ensureNationalDb();
+   const {data:removed,error}=await onlineDb.from("shared_custom_stages").delete().eq("id",sharedId).select("id");
+   if(error)throw error;
+   if(!removed?.length){toast("共有中の作品を削除できません。投稿したアカウントで操作してください");return}
+  }catch(e){toast("公開作品を削除できませんでした。通信を確認してください");return}
+ }
+ arr.splice(index,1);localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));
+ const next={};for(const [k,v] of Object.entries(map)){const n=Number(k);if(n<index)next[n]=v;else if(n>index)next[n-1]=v}customSaveMap(next);
+ customSelected=-1;customCells=Array(80).fill(null);$("customName").value="";
+ try{localStorage.removeItem(CUSTOM_DRAFT_KEY)}catch{}
+ renderCustomEditor();toast("作品を削除しました");
+}
+$("customDeleteCurrent").onclick=()=>deleteCustomStage(customSelected);
 function renderCustomEditor(){const colors={rowHalf:"#ffe878",colHalf:"#86fff3",normal:"#54c5fa",glass:"#b4f3ff",armor:"#727eaf",coin:"#ffd15c",bomb:"#ff9950",iron:"#8796ac",monster:"#64df9a",moving:"#42c7ab",boss:"#f66dd4",movingBoss:"#ff8cda",damage:"#f5c96b",speed:"#ffe36c",split:"#9bffad",bounce:"#ec9df8"};const names={rowHalf:"↔",colHalf:"↕",normal:"■",glass:"硝",armor:"強",coin:"金",bomb:"爆",iron:"鉄",monster:"敵",moving:"動",boss:"王",movingBoss:"動王",damage:"力",speed:"速",split:"分",bounce:"跳"};for(const [key,values] of Object.entries(PUSH_DIRECTIONS)){colors[key]="#81edff";names[key]=values[2]}
- const w=customBoard.width/8,h=customBoard.height/10;customCtx.fillStyle="#0b1830";customCtx.fillRect(0,0,customBoard.width,customBoard.height);for(let i=0;i<80;i++){const x=i%8*w,y=Math.floor(i/8)*h,v=customCells[i];customCtx.strokeStyle="#40516b";customCtx.strokeRect(x+.5,y+.5,w-1,h-1);if(v){customCtx.fillStyle=v.type==="glass"?"rgba(177,236,255,0.17)":colors[v.type];customCtx.fillRect(x+4,y+4,w-8,h-8);if(v.type==="glass"){customCtx.strokeStyle="rgba(216,250,255,0.85)";customCtx.lineWidth=2;customCtx.strokeRect(x+4,y+4,w-8,h-8);customCtx.beginPath();customCtx.moveTo(x+9,y+17);customCtx.lineTo(x+22,y+5);customCtx.stroke()}customCtx.fillStyle=v.type==="glass"?"#e5fbff":"#14243b";customCtx.textAlign="center";customCtx.font="bold 17px sans-serif";customCtx.fillText(names[v.type],x+w/2,y+25);if(!["iron","damage","speed","split","bounce",...Object.keys(PUSH_DIRECTIONS)].includes(v.type)){customCtx.font="12px sans-serif";customCtx.fillText(v.hp,x+w/2,y+42)}}}const count=customCells.filter(Boolean).length;$("customInfo").textContent=`配置数：${count} / 80　（同じマスをクリックすると上書きできます）`;const saved=$("customSaved");saved.replaceChildren();customList().forEach((a,i)=>{const load=document.createElement("button");load.textContent=`${i+1}. ${String(a.name||"無題").slice(0,24)} を開く`;load.onclick=()=>{customCells=Array.from({length:80},(_,k)=>validCustomCell(a.cells?.[k]));$("customName").value=String(a.name||"自作ステージ").slice(0,24);customSelected=i;renderCustomEditor()};saved.appendChild(load);const del=document.createElement("button");del.textContent="削除";del.onclick=()=>{if(!confirm("この自作ステージを削除しますか？"))return;const arr=customList();arr.splice(i,1);localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));customSelected=-1;renderCustomEditor()};saved.appendChild(del)})}
-customBoard.addEventListener("pointerdown",e=>{const rect=customBoard.getBoundingClientRect(),c=Math.floor((e.clientX-rect.left)/rect.width*8),r=Math.floor((e.clientY-rect.top)/rect.height*10);if(c<0||c>=8||r<0||r>=10)return;const type=$("customTool").value;customCells[r*8+c]=type==="erase"?null:{type,hp:Math.max(1,Math.min(999,Math.floor(Number($("customHp").value)||1)))};renderCustomEditor()});
-$("customStageBtn").onclick=()=>show("custom");$("customBack").onclick=()=>show("select");
-$("customClear").onclick=()=>{if(confirm("配置を全部消しますか？")){customCells=Array(80).fill(null);customSelected=-1;renderCustomEditor()}};
-$("customSave").onclick=()=>{const arr=customList(),entry={name:$("customName").value.trim().slice(0,24)||"自作ステージ",cells:customCells.map(validCustomCell)};if(customSelected>=0&&customSelected<arr.length)arr[customSelected]=entry;else{if(arr.length>=10){toast("保存できるのは10個までです");return}customSelected=arr.length;arr.push(entry)}try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));toast("自作ステージを保存しました");renderCustomEditor()}catch{toast("保存に失敗しました")}};
+ const w=customBoard.width/8,h=customBoard.height/10;customCtx.fillStyle="#0b1830";customCtx.fillRect(0,0,customBoard.width,customBoard.height);for(let i=0;i<80;i++){const x=i%8*w,y=Math.floor(i/8)*h,v=customCells[i];customCtx.strokeStyle="#40516b";customCtx.strokeRect(x+.5,y+.5,w-1,h-1);if(v){customCtx.fillStyle=v.type==="glass"?"rgba(177,236,255,0.17)":colors[v.type];customCtx.fillRect(x+4,y+4,w-8,h-8);if(v.type==="glass"){customCtx.strokeStyle="rgba(216,250,255,0.85)";customCtx.lineWidth=2;customCtx.strokeRect(x+4,y+4,w-8,h-8);customCtx.beginPath();customCtx.moveTo(x+9,y+17);customCtx.lineTo(x+22,y+5);customCtx.stroke()}customCtx.fillStyle=v.type==="glass"?"#e5fbff":"#14243b";customCtx.textAlign="center";customCtx.font="bold 17px sans-serif";customCtx.fillText(names[v.type],x+w/2,y+25);if(!["iron","damage","speed","split","bounce",...Object.keys(PUSH_DIRECTIONS)].includes(v.type)){customCtx.font="12px sans-serif";customCtx.fillText(v.hp,x+w/2,y+42)}}}const count=customCells.filter(Boolean).length;$("customInfo").textContent=`配置数：${count} / 80　（同じマスをクリックすると上書きできます）`;const saved=$("customSaved");saved.replaceChildren();customList().forEach((a,i)=>{const load=document.createElement("button");load.textContent=`${i+1}. ${String(a.name||"無題").slice(0,24)} を開く`;load.onclick=()=>{customCells=Array.from({length:80},(_,k)=>validCustomCell(a.cells?.[k]));$("customName").value=String(a.name||"自作ステージ").slice(0,24);customSelected=i;customDraft();renderCustomEditor()};saved.appendChild(load);const shared=customShareMap()[i];if(shared){const tag=document.createElement("span");tag.textContent="🌐 公開中";saved.appendChild(tag)}const del=document.createElement("button");del.textContent="削除";del.onclick=()=>deleteCustomStage(i);saved.appendChild(del)})}
+customBoard.addEventListener("pointerdown",e=>{const rect=customBoard.getBoundingClientRect(),c=Math.floor((e.clientX-rect.left)/rect.width*8),r=Math.floor((e.clientY-rect.top)/rect.height*10);if(c<0||c>=8||r<0||r>=10)return;const type=$("customTool").value;customCells[r*8+c]=type==="erase"?null:{type,hp:Math.max(1,Math.min(999,Math.floor(Number($("customHp").value)||1)))};scheduleCustomAutosave();renderCustomEditor()});
+$("customStageBtn").onclick=()=>show("custom");
+$("customName").addEventListener("input",scheduleCustomAutosave);
+$("customNew").onclick=()=>{clearTimeout(customAutosaveTimer);customAutosave();if(customList().length>=10){toast("作品は10個までです");return}customSelected=-1;customCells=Array(80).fill(null);$("customName").value="";customDraft();renderCustomEditor()};
+$("customShare").onclick=shareCustomStage;
+$("customUnshare").onclick=()=>unshareCustomStage();$("customBack").onclick=()=>{clearTimeout(customAutosaveTimer);customAutosave();show("select")};
+$("customClear").onclick=()=>{if(confirm("配置を全部消しますか？")){customCells=Array(80).fill(null);scheduleCustomAutosave();renderCustomEditor()}};
+restoreCustomDraft();
 function startCustomStage(){const layout=customPlaying||customCells.map(validCustomCell);if(!layout.some(v=>v&&["normal","bomb","glass","armor","coin","rowHalf","colHalf","monster","moving","boss","movingBoss"].includes(v.type))){toast("壊せるブロックかモンスターを置いてください");return}customPlaying=layout.map(validCustomCell);const blocks=[],monsters=[],items=[];layout.forEach((v,i)=>{if(!v)return;const c=i%8,row=Math.floor(i/8);if(["normal","bomb","iron","glass","armor","coin","rowHalf","colHalf"].includes(v.type))blocks.push({id:i,c,row,type:v.type,hp:v.type==="iron"?Infinity:v.hp,alive:true});else if(["monster","moving","boss","movingBoss"].includes(v.type))monsters.push({id:i,c,row,type:v.type,hp:v.hp,alive:true,dir:1});else items.push({id:i,c,row,type:v.type})});closeModal();show("play");paused=false;keys.clear();game={custom:true,n:1,blocks,monsters,items,balls:[],effects:[],shots:0,aim:-Math.PI/2,launchX:W/2,nextX:W/2,waiting:true,three:999,two:999,cleared:false};$("stageTitle").textContent="🛠️ 自作ステージ";updateStats();drawGame()}
 $("customPlay").onclick=()=>{customPlaying=customCells.map(validCustomCell);startCustomStage()};
 
