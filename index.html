@@ -60,7 +60,7 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <section id="onlineRoomScreen" class="panel hidden"><h2>🌐 オンライン対決・ルーム番号</h2><p class="note"><strong>⚔️ オンライン対決のルール</strong><br>・相手と同じ6桁のルーム番号を入力して対決！<br>・先に3ポイント取ったプレイヤーが勝利！<br>・1ラウンドは60秒。時間切れは引き分け（両者0ポイント）。<br>・勝利：150コイン＋ランキング10ポイント／敗北：50コイン・ランキング10ポイント減少（0未満にはなりません）。<br>・途中退出した場合、報酬はありません。<br>・新しい称号に初めて昇格すると、1000コイン獲得！</p><div class="actions"><input id="onlineRoomNumber" inputmode="numeric" maxlength="6" placeholder="6桁のルーム番号" aria-label="ルーム番号" style="padding:12px;border-radius:8px;font-size:18px;max-width:230px"><button id="onlineJoin" type="button">ルームに参加</button><button id="onlineLeave" type="button">退出</button></div><p id="onlineStatus" class="note center" aria-live="polite">未接続</p><div class="actions"><button id="onlineChoose" type="button" class="hidden">ボールを選ぶ</button><button id="onlineBack" type="button">ステージ選択へ</button></div><div class="online-rank-actions"><button id="nationalRankBtn" type="button">🌏 対決ランキング</button><button id="rankTitlesBtn" type="button">👑 称号一覧</button></div></section>
 <section id="versusChooseScreen" class="panel hidden"><h2>⚔️ 対決用ボールを選ぼう！</h2><p class="note">相手のボールは、両方が決定するまで表示されません。</p><h3 id="versusChooseTitle">🔵 プレイヤー1のボールを選択</h3><div id="versusChoices1" class="versus-choices"></div><div id="versusChoices2" class="versus-choices hidden"></div><p id="versusChooseInfo" class="note center"></p><div class="actions"><button id="versusConfirm" type="button" disabled>このボールに決定</button><button id="versusStart" type="button" class="hidden" disabled>⚔️ フィールドへ進む</button><button id="versusChooseBack" type="button">ステージ選択に戻る</button></div></section>
 <section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">通常ステージと同じように、迷路の上でマウスを動かして狙い、クリックして決定してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">マウスで狙い、Enterキーまたは下のボタンで方向を決定してください。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
-<section id="versusScreen" class="panel hidden"><h2>⚔️ 3点先取の対決モード</h2><p id="versusRankInfo" class="center" style="font-weight:bold;color:#ffe27b">あなたの称号：🌱 見習い ／ 対戦ポイント：0pt</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div id="versusAbilities" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0" aria-live="polite"><div id="versusAbility1" style="padding:12px;border:1px solid #46c7ff;border-radius:10px"></div><div id="versusAbility2" style="padding:12px;border:1px solid #ff7777;border-radius:10px"></div></div><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">10 / 10 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">10 / 10 HP</strong></p><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
+<section id="versusScreen" class="panel hidden"><h2>⚔️ 3点先取の対決モード</h2><p id="versusRankInfo" class="center" style="font-weight:bold;color:#ffe27b">あなたの称号：🌱 見習い ／ 対戦ポイント：0pt</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div id="versusAbilities" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0" aria-live="polite"><div id="versusAbility1" style="padding:12px;border:1px solid #46c7ff;border-radius:10px"></div><div id="versusAbility2" style="padding:12px;border:1px solid #ff7777;border-radius:10px"></div></div><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">10 / 10 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">10 / 10 HP</strong></p><p id="versusSpecialStatus" class="note center">⚡ 各プレイヤー1回ずつ瞬間移動できます</p><div class="actions"><button id="versusTeleport" type="button">⚡ 瞬間移動</button><button id="versusSurrender" type="button">🏳️ 降参</button></div><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
 <section id="nationalRankScreen" class="panel hidden"><h2>🌏 全国対戦ポイントランキング TOP 100</h2><p class="note">全国のプレイヤーの対戦ポイント・称号を表示します。プレイヤーIDは公開しません。※オンラインランキングはインターネット接続とSupabaseのSQL設定が必要です。</p><p id="nationalRankStatus" class="note center" aria-live="polite">読み込み前</p><p id="nationalMyRank" class="note center" aria-live="polite"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>称号</th><th>ポイント</th></tr></thead><tbody id="nationalRankRows"></tbody></table></div><div class="actions"><button id="nationalRankRefresh" type="button">🔄 更新</button><button data-open="online" type="button">戻る</button></div></section>
 <section id="rankTitlesScreen" class="panel hidden"><h2>👑 称号一覧</h2><p class="note">対決ポイントで獲得できる称号です。各称号に初めて昇格したときだけ1000コインを獲得できます。</p><p id="rankTitlesCurrent" class="center"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>必要ポイント</th><th>称号</th></tr></thead><tbody id="rankTitlesRows"></tbody></table></div><div class="actions"><button data-open="online" type="button">ルーム画面に戻る</button></div></section>
 <section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingMyRank" class="note"></p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="rankingHub">戻る</button></div></section>
@@ -122,7 +122,7 @@ store.miniRanking=Array.isArray(store.miniRanking)?store.miniRanking.filter(r=>r
 
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch{toast("保存できません。ブラウザの保存設定を確認してください")}}
 function toast(s){const el=$("toast");el.textContent=s;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600)}
-function show(s){screen=s;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==s));if(s==="select"){renderSelect();updateVersusRankDisplay();void syncNationalRanking();void syncCurrencyRanking();}if(s==="skins")renderSkins();if(s==="settings")renderSettings();if(s==="slot")renderSlots();if(s==="ranking")renderRanking();if(s==="currencyRank")void loadCurrencyRanking();if(s==="nationalRank")void loadNationalRanking();if(s==="rankTitles")renderRankTitles();if(s==="custom")renderCustomEditor();if(s==="versus"){updateVersusAbilities();drawVersusBoard();}if(s==="versusDirection")drawVersusAim();if(s==="versusChoose"){renderVersusChoices()}}
+function show(s){screen=s;Object.entries(screens).forEach(([k,v])=>v.classList.toggle("hidden",k!==s));if(s==="select"){renderSelect();updateVersusRankDisplay();void syncNationalRanking();void syncCurrencyRanking();}if(s==="skins")renderSkins();if(s==="settings")renderSettings();if(s==="slot")renderSlots();if(s==="ranking")renderRanking();if(s==="currencyRank")void loadCurrencyRanking();if(s==="nationalRank")void loadNationalRanking();if(s==="rankTitles")renderRankTitles();if(s==="custom")renderCustomEditor();if(s==="versus"){updateVersusAbilities();drawVersusBoard();refreshSpecial();}if(s==="versusDirection")drawVersusAim();if(s==="versusChoose"){renderVersusChoices()}}
 function modal(title,body,buttons){$("overlayTitle").textContent=title;$("overlayBody").innerHTML=body;$("overlayButtons").replaceChildren();buttons.forEach(([label,fn])=>{const b=document.createElement("button");b.textContent=label;b.onclick=fn;$("overlayButtons").appendChild(b)});$("overlay").classList.remove("hidden")}
 function closeModal(){$("overlay").classList.add("hidden")}
 function openRulebook(){modal("📖 スーパーボールクラッシュ ルールブック",`<div class="rulebook-body">
@@ -587,12 +587,12 @@ function renderOnlineRoom(row){if(!onlineRoom)return;const value=parseRoom(row);
     const finishedRoom=onlineRoom;
     void onlineRpc("cleanup_battle_room",{p_room_code:finishedRoom,p_action:"finish"}).catch(e=>console.warn("終了ルームの削除待ち:",e));
    }
-  }onlineStartAt=value.startAt||0;updateVersusScore();const winner=value.roundResult.winner;$("versusCountdown").textContent=value.champion!=null?`🏆 プレイヤー${value.champion+1}が3点！ 最終勝利！`:winner===-1?`第${value.round}ラウンド：引き分け！ 両者0点`:`第${value.round}ラウンド：プレイヤー${winner+1}の勝ち！`;
+  }onlineStartAt=value.startAt||0;teleportArmed=false;refreshSpecial();updateVersusScore();const winner=value.roundResult.winner;$("versusCountdown").textContent=value.champion!=null?`🏆 プレイヤー${value.champion+1}が3点！ 最終勝利！`:winner===-1?`第${value.round}ラウンド：引き分け！ 両者0点`:`第${value.round}ラウンド：プレイヤー${winner+1}の勝ち！`;
  $("versusReselect").disabled=value.champion!=null||!!value.players[onlineUid]?.nextReady;$("versusReselect").textContent=value.champion!=null?"試合終了":value.players[onlineUid]?.nextReady?"相手の『次へ』を待っています…":"次のラウンドへ";if(screen!=="versus")show("versus");return}
  if(!value.startAt){onlineStartAt=0;versusMotionKey="";versusRoundResult=null;$("versusReselect").disabled=true}
  const bothBalls=ids.length===2&&ids.every(id=>value.players[id]?.ready===true);
  const bothDirections=bothBalls&&ids.every(id=>{const d=value.players[id]?.direction;return d&&Number.isFinite(d.x)&&Number.isFinite(d.y)&&Math.hypot(d.x,d.y)>.5});
- if(bothDirections&&value.startAt){onlineStartAt=value.startAt;ids.forEach((id,i)=>{versusPlayers[i].ballType=Math.max(0,Math.min(VERSUS_BALL_TYPES.length-1,Number(value.players[id].ball)||0));versusPlayers[i].hp=versusMaxHp(versusPlayers[i].ballType);versusPlayers[i].direction=value.players[id].direction});if(screen!=="versus")show("versus");return}
+ if(bothDirections&&value.startAt){onlineStartAt=value.startAt;refreshSpecial();ids.forEach((id,i)=>{versusPlayers[i].ballType=Math.max(0,Math.min(VERSUS_BALL_TYPES.length-1,Number(value.players[id].ball)||0));versusPlayers[i].hp=versusMaxHp(versusPlayers[i].ballType);versusPlayers[i].direction=value.players[id].direction});if(screen!=="versus")show("versus");return}
  if(bothBalls){if(screen!=="versusDirection")show("versusDirection");drawVersusAim();$("versusAimConfirm").disabled=!!onlineDirection;$("versusDirectionStatus").textContent=onlineDirection?"方向を決定しました。相手を待っています…":"マウスで狙い、Enterキーまたは『この方向で決定』を押してください。";return}
  if(ids.length===2){if(screen!=="versusChoose")show("versusChoose");renderVersusChoices();if(onlineReady)$("versusChooseInfo").textContent="決定しました。相手を待っています…";}else if(screen==="versus"||screen==="versusDirection"||screen==="versusChoose")show("online");
  onlineStatus(ids.length===1?"参加しました。相手を待っています…":onlineReady?"ボール決定済み。相手を待っています…":"2人が接続しました。ボールを選んでください！");$("onlineChoose").classList.toggle("hidden",ids.length!==2||onlineReady);
@@ -663,6 +663,51 @@ function versusMaxHp(index){const i=Math.max(0,Math.min(39,index|0));return VERS
 const versusPlayers=[{col:0,row:9,hp:VERSUS_MAX_HP,color:"#46c7ff",label:"1",ballType:0},{col:7,row:0,hp:VERSUS_MAX_HP,color:"#ff7777",label:"2",ballType:0}];
 let versusMotionKey="",versusMotionTime=0,versusMotionState=null;
 let versusRoundResult=null,versusCollisionCooldown=-1,versusRoundSubmitting=false;
+let teleportArmed=false,teleportBusy=false,surrenderBusy=false,aiTeleportEvents=[],aiTeleportUsed=false;
+function teleportEvents(){return aiVersusMode?aiTeleportEvents:Object.values(onlineRoomData?.teleports||{}).filter(e=>e?.round===onlineRoomData?.round);}
+function teleportValid(col,row){return Number.isInteger(col)&&Number.isInteger(row)&&col>=0&&col<8&&row>=0&&row<10&&VERSUS_MAZE[row]?.[col]!== "#";}
+function refreshSpecial(){
+ const active=screen==="versus"&&onlineStartAt&&Date.now()>=onlineStartAt&&!onlineRoomData?.roundResult&&versusRoundResult===null;
+ const used=aiVersusMode?aiTeleportUsed:onlineRoomData?.teleports?.[String(onlineSeat)]?.round===onlineRoomData?.round;
+ $("versusTeleport").disabled=!active||used||teleportBusy;
+ $("versusTeleport").textContent=used?"⚡ 使用済み":teleportArmed?"⚡ 移動先をクリック":"⚡ 瞬間移動";
+ $("versusSurrender").disabled=!active||surrenderBusy;
+ $("versusSpecialStatus").textContent=teleportArmed?"壁のないマスをクリックしてください":"⚡ 瞬間移動は各プレイヤー1ラウンド1回";
+}
+function finishAiRound(winner,reason){
+ if(aiRoundHandled)return;
+ aiRoundHandled=true;versusRoundResult=winner;if(winner>=0)aiWins[winner]++;
+ onlineRoomData.roundResult={winner,reason};onlineRoomData.wins=aiWins.slice();
+ onlineRoomData.champion=aiWins[0]>=3?0:aiWins[1]>=3?1:null;
+ if(onlineRoomData.champion!==null)awardVersusMatchCoins("ai_"+onlineRoom,onlineRoomData.champion===0);
+ updateVersusScore();
+ $("versusCountdown").textContent=onlineRoomData.champion!==null?(onlineRoomData.champion===0?"🏆 あなたの勝利！":"🤖 AIの勝利！"):reason==="surrender"?"🏳️ 降参！ AIに1ポイント":winner===-1?"引き分け！":winner===0?"あなたの勝ち！":"AIの勝ち！";
+ $("versusReselect").disabled=onlineRoomData.champion!==null;
+ $("versusReselect").textContent=onlineRoomData.champion!==null?"試合終了":"次のラウンドへ";refreshSpecial();
+}
+$("versusTeleport").onclick=()=>{teleportArmed=!teleportArmed;refreshSpecial()};
+$("versusBoard").addEventListener("pointerdown",async e=>{
+ if(!teleportArmed||screen!=="versus"||teleportBusy)return;
+ const c=$("versusBoard"),r=c.getBoundingClientRect();
+ const col=Math.floor(((e.clientX-r.left)*c.width/r.width-24)/54),row=Math.floor(((e.clientY-r.top)*c.height/r.height-30)/54);
+ if(!teleportValid(col,row)){toast("壁のないマスを選んでください");return;}
+ teleportBusy=true;
+ try{
+  if(aiVersusMode){if(aiTeleportUsed)return;aiTeleportUsed=true;aiTeleportEvents.push({seat:0,col,row,time:Math.max(0,(Date.now()-onlineStartAt)/1000)});}
+  else{await onlineRpc("battle_special_action",{p_room_code:onlineRoom,p_action:"teleport",p_col:col,p_row:row});await refreshOnlineRoom();}
+  teleportArmed=false;
+ }catch(err){toast("瞬間移動できません："+err.message)}
+ finally{teleportBusy=false;refreshSpecial();}
+});
+$("versusSurrender").onclick=async()=>{
+ if(!confirm("降参すると相手に1ポイント入ります。降参しますか？"))return;
+ surrenderBusy=true;refreshSpecial();
+ try{if(aiVersusMode)finishAiRound(1,"surrender");
+ else{await onlineRpc("battle_special_action",{p_room_code:onlineRoom,p_action:"surrender",p_col:null,p_row:null});await refreshOnlineRoom();}}
+ catch(err){toast("降参できません："+err.message)}
+ finally{surrenderBusy=false;refreshSpecial();}
+};
+
 // 壁トラップは端末ごとに同じ衝突順序から生成する（Math.randomを使わない）。
 const VERSUS_WALL_TRAPS={poison:{chance:20,damage:2,label:"☠",color:"#9ef35a"},cactus:{chance:30,damage:1,label:"✹",color:"#91e47d"},burn:{chance:25,damage:2,label:"✦",color:"#ff9b54"},slow:{chance:30,slow:.65,label:"❄",color:"#b4eeff"},blackhole:{chance:25,slow:.6,label:"◎",color:"#aa91ed"},gold:{chance:15,damage:3,label:"✹",color:"#ffd34a"},pearl:{chance:20,heal:2,label:"✧",color:"#f7ebda"},tornado:{chance:25,boost:1.3,label:"➤",color:"#9de0bf"}};
 function versusTrapRoll(owner,count,axis){let n=Math.imul((count+1)*131+(owner+1)*997+(axis+1)*719,2654435761)>>>0;n^=n>>>16;n=Math.imul(n,2246822519)>>>0;return (n>>>8)%100;}
@@ -684,7 +729,7 @@ function updateVersusScore(){
  updateVersusAbilities();
 }
 async function reportVersusResult(winner){if(onlineSeat!==0||versusRoundSubmitting||!onlineRoom||!onlineDb)return;versusRoundSubmitting=true;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"result",p_payload:{winner}});await refreshOnlineRoom()}catch(e){console.warn("対戦結果の保存に失敗",e)}finally{versusRoundSubmitting=false}}
-async function nextVersusRound(){if(aiVersusMode){if(!aiRoundHandled||onlineRoomData.champion!==null)return;aiRound++;aiRoundHandled=false;onlineStartAt=0;versusMotionKey="";versusRoundResult=null;onlineRoomData.round=aiRound;onlineRoomData.roundResult=null;onlineRoomData.startAt=null;onlineReady=false;onlineDirection=null;versusSelected[0]=-1;versusSelected[1]=-1;setVersusMaze(onlineRoom,aiRound);show("versusChoose");return;}if(!onlineRoom||!onlineDb||!onlineRoomData?.roundResult||onlineRoomData.champion!=null)return;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"next",p_payload:{}});await refreshOnlineRoom()}catch(e){onlineStatus("次のラウンドの準備に失敗: "+e.message)}}
+async function nextVersusRound(){if(aiVersusMode){if(!aiRoundHandled||onlineRoomData.champion!==null)return;aiRound++;aiRoundHandled=false;aiTeleportEvents=[];aiTeleportUsed=false;teleportArmed=false;onlineStartAt=0;versusMotionKey="";versusRoundResult=null;onlineRoomData.round=aiRound;onlineRoomData.roundResult=null;onlineRoomData.startAt=null;onlineReady=false;onlineDirection=null;versusSelected[0]=-1;versusSelected[1]=-1;setVersusMaze(onlineRoom,aiRound);show("versusChoose");return;}if(!onlineRoom||!onlineDb||!onlineRoomData?.roundResult||onlineRoomData.champion!=null)return;try{await onlineRpc("battle_action",{p_room_code:onlineRoom,p_action:"next",p_payload:{}});await refreshOnlineRoom()}catch(e){onlineStatus("次のラウンドの準備に失敗: "+e.message)}}
 
 let versusTraps=[];
 // 対決用アイテム: ルーム番号とラウンドから両端末で同じ配置を生成する。
@@ -709,10 +754,15 @@ function createVersusItems(){
 }
 
 function simulateVersusMotion(){
+ if(aiVersusMode&&aiRoundHandled&&onlineRoomData?.roundResult?.reason==="surrender")return versusMotionState;
  if(!onlineStartAt||Date.now()<onlineStartAt)return null;
- const key=onlineStartAt+":"+versusPlayers.map(p=>JSON.stringify(p.direction)).join(":");
+ const key=onlineStartAt+":"+versusPlayers.map(p=>JSON.stringify(p.direction)).join(":")+":"+JSON.stringify(teleportEvents());
  if(key!==versusMotionKey){versusMotionKey=key;versusTraps=[];versusItems=createVersusItems();versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*300*versusSpeed(p.ballType),vy:(p.direction?.y||0)*300*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
  const target=Math.min(VERSUS_ROUND_SECONDS,(Date.now()-onlineStartAt)/1000),step=1/120;
+ if(aiVersusMode&&target>=20&&!aiTeleportEvents.some(e=>e.seat===1)&&!aiRoundHandled){
+  const cells=[];for(let row=1;row<9;row++)for(let col=1;col<7;col++)if(teleportValid(col,row))cells.push({col,row});
+  if(cells.length)aiTeleportEvents.push({seat:1,...cells[(aiRound*13)%cells.length],time:20});
+ }
  // 同じ開始時刻と方向から双方の端末で同じ軌道を計算する。
  while(versusMotionTime+step<=target&&versusMotionState){
   for(let bi=0;bi<versusMotionState.length;bi++){const b=versusMotionState[bi];const nx=b.x+b.vx*step,ny=b.y+b.vy*step;
@@ -731,6 +781,12 @@ function simulateVersusMotion(){
      versusTraps.push({owner:bi,x:tx,y:ty,created:versusMotionTime,expires:versusMotionTime+8,used:false,skill});
      if(versusTraps.length>32)versusTraps.shift();
     }
+   }
+  }
+  // 共有された時刻で瞬間移動を再現し、双方の画面で同じ結果にする。
+  for(const ev of teleportEvents()){
+   if(ev&&Number.isFinite(Number(ev.time))&&ev.time>=versusMotionTime&&ev.time<versusMotionTime+step&&teleportValid(ev.col,ev.row)){
+    const b=versusMotionState[ev.seat];if(b){b.x=24+(ev.col+.5)*54;b.y=30+(ev.row+.5)*54;}
    }
   }
   // ボールが触れたアイテムは1回だけ取得。効果は両端末で同じ順序で計算。
@@ -801,7 +857,7 @@ function simulateVersusMotion(){
   versusRoundResult=-1;
  }
  versusMotionState.forEach((b,i)=>versusPlayers[i].hp=b.hp);
- if(versusRoundResult!==null&&aiVersusMode&&!aiRoundHandled){aiRoundHandled=true;if(versusRoundResult>=0)aiWins[versusRoundResult]++;onlineRoomData.roundResult={winner:versusRoundResult};onlineRoomData.wins=aiWins.slice();onlineRoomData.champion=aiWins[0]>=3?0:aiWins[1]>=3?1:null;if(onlineRoomData.champion!==null)awardVersusMatchCoins("ai_"+onlineRoom,onlineRoomData.champion===0);updateVersusScore();$("versusCountdown").textContent=onlineRoomData.champion!==null?(onlineRoomData.champion===0?"🏆 あなたの勝利！":"🤖 AIの勝利！"):versusRoundResult===-1?"引き分け！ 両者0点":versusRoundResult===0?"あなたの勝ち！":"AIの勝ち！";$("versusReselect").disabled=onlineRoomData.champion!==null;$("versusReselect").textContent=onlineRoomData.champion!==null?"試合終了":"次のラウンドへ";}
+ if(versusRoundResult!==null&&aiVersusMode&&!aiRoundHandled)finishAiRound(versusRoundResult,"normal");
  if(versusRoundResult!==null&&!aiVersusMode&&!onlineRoomData?.roundResult)reportVersusResult(versusRoundResult);
  return versusMotionState;
 }
@@ -824,7 +880,7 @@ function drawVersusBoard(){
    x.restore();
   }
  }
- const moving=simulateVersusMotion();updateVersusScore();
+ const moving=simulateVersusMotion();updateVersusScore();refreshSpecial();
  // 対決フィールドのアイテムを表示する（取得したものは消える）。
  if(onlineStartAt&&versusItems.length)for(const item of versusItems){
   if(item.taken)continue;
@@ -1621,7 +1677,7 @@ $("customPlay").onclick=()=>{customPlaying=customCells.map(validCustomCell);star
 $("versusBtn").onclick=()=>show("online");
 function leaveAiVersus(){aiVersusMode=false;onlineRoom=null;onlineRoomData=null;onlineStartAt=0;onlineReady=false;onlineDirection=null;onlineSeat=-1;versusMotionKey="";versusRoundResult=null;clearVersusMaze();}
 function startAiVersus(){aiVersusMode=true;aiMatchId++;aiRound=1;aiWins=[0,0];aiRoundHandled=false;onlineRoom="AI-"+Date.now()+"-"+aiMatchId;onlineSeat=0;onlineReady=false;onlineDirection=null;onlineStartAt=0;versusMotionKey="";versusRoundResult=null;onlineRoomData={round:1,wins:[0,0],roundResult:null,champion:null};resetVersusChoices();setVersusMaze(onlineRoom,1);updateVersusScore();show("versusChoose");}
-function startAiVersusRound(){if(!aiVersusMode||!onlineReady||screen!=="versusDirection")return;const a=Math.random()*Math.PI*2;versusPlayers[0].direction={...aimVector};versusPlayers[1].direction={x:Math.cos(a),y:Math.sin(a)};onlineDirection={...aimVector};onlineStartAt=Date.now()+3000;onlineRoomData.startAt=onlineStartAt;versusMotionKey="";versusRoundResult=null;aiRoundHandled=false;$("versusReselect").disabled=true;$("versusCountdown").textContent="開始まで 3…";show("versus");}
+function startAiVersusRound(){if(!aiVersusMode||!onlineReady||screen!=="versusDirection")return;const a=Math.random()*Math.PI*2;versusPlayers[0].direction={...aimVector};versusPlayers[1].direction={x:Math.cos(a),y:Math.sin(a)};onlineDirection={...aimVector};onlineStartAt=Date.now()+3000;aiTeleportEvents=[];aiTeleportUsed=false;teleportArmed=false;onlineRoomData.startAt=onlineStartAt;versusMotionKey="";versusRoundResult=null;aiRoundHandled=false;$("versusReselect").disabled=true;$("versusCountdown").textContent="開始まで 3…";show("versus");}
 $("aiVersusBtn").onclick=startAiVersus;
 
 $("onlineJoin").onclick=onlineConnect;
