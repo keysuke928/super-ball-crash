@@ -38,10 +38,57 @@ aside{width:225px;max-width:100%}.stats{line-height:1.9}.save-slot{display:flex;
 .online-rank-actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px;flex-wrap:wrap}.online-rank-actions button{flex:0 1 auto}@media(max-width:480px){.online-rank-actions button{flex:1 1 100%}}
 /* iPad限定：タップで狙い、専用ボタンで発射 */
 #ipadShootBtn{display:none;min-height:58px;min-width:220px;font-weight:800;font-size:19px;background:#1766b3;border:2px solid #94dcff;touch-action:manipulation}
-body.ipad-mode #ipadShootBtn{display:inline-block}
+body.touch-mode #ipadShootBtn{display:inline-block}
 #selectScreen .player-name-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;justify-content:flex-start;flex-wrap:wrap}
 #selectScreen .player-name-label{font-weight:700;color:#eaf6ff;overflow-wrap:anywhere}
 #rulebookBtn{margin-left:auto;font-weight:700;background:#254c7c;border-color:#92caff}#rulebookBtn:hover{background:#38669b}.rulebook-body{line-height:1.75;text-align:left}.rulebook-body h3{margin:14px 0 5px;color:#9ae9ff}.rulebook-body p{margin:4px 0 10px}.rulebook-body ul{padding-left:22px;margin:4px 0 12px}#renamePlayerBtn{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;padding:0;font-size:19px;line-height:1;flex:none}
+
+/* 初回チュートリアル用の図解（画像ファイル不要） */
+.tutorial-figure{margin:12px auto;padding:12px;border:1px solid #52749d;border-radius:12px;background:#10223b;max-width:440px;text-align:center}
+.tutorial-figure svg{display:block;width:100%;height:auto;max-height:195px}
+.tutorial-figure figcaption{font-size:13px;color:#d2e9ff;margin-top:6px}
+.tutorial-text{text-align:left;line-height:1.65}
+
+/* スマートフォン操作改善：指で押しやすいボタンと小画面用レイアウト */
+@media(max-width:650px){
+ html{-webkit-text-size-adjust:100%}
+ body{overflow-x:hidden}
+ .wrap{padding:8px;max-width:100%}
+ .panel{padding:12px;border-radius:13px}
+ h1{font-size:clamp(23px,7vw,32px);line-height:1.25}
+ h2{font-size:clamp(19px,5vw,25px)}
+ .actions{gap:8px;margin:10px 0}
+ button{min-height:44px;padding:11px 12px}
+ .actions>button{flex:1 1 auto}
+ .stages{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .stages button{min-height:54px}
+ .slots,.skins{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #coinSkins,#gemSkins{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #coinSkins button,#gemSkins button{min-height:130px}
+ #gameArea{gap:8px;display:flex;flex-direction:column;align-items:stretch}
+ #gameArea>canvas{width:100%;max-width:480px;align-self:center}
+ #gameArea>aside{width:100%;max-width:100%;padding:10px}
+ #gameArea aside .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ #gameArea aside .actions button{min-width:0}
+ body.touch-mode #ipadShootBtn{display:block;grid-column:1/-1;width:100%;min-width:0;min-height:64px;font-size:22px;position:relative}
+ #versusBoard,#versusAimBoard,#customCanvas{width:100%;max-width:480px}
+ #versusCountdown{font-size:clamp(24px,7vw,34px)!important}
+ #versusScore{font-size:18px!important}
+ #versusAbilities{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+ #versusAbility1,#versusAbility2{padding:7px!important;font-size:12px;overflow-wrap:anywhere}
+ #versusChoices1{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .versus-choice{min-width:0;overflow-wrap:anywhere}
+ #overlay{padding:8px}
+ #overlay .panel{max-height:92dvh;overflow-y:auto}
+ input,select,textarea{max-width:100%;font-size:16px}
+ #mobileAimHint{margin:4px 0 8px}
+}
+@media(max-width:360px){
+ .stages{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #coinSkins,#gemSkins{grid-template-columns:1fr}
+}
+body.touch-mode button{touch-action:manipulation}
+body.touch-mode #board,body.touch-mode #versusBoard,body.touch-mode #versusAimBoard{touch-action:none}
 </style><style id="my-rank-highlight">
 /* 自分の順位をすべてのランキングで目立たせる */
 tr.my-ranking-row{background:rgba(255,205,55,.25)!important;outline:2px solid #ffd24c;outline-offset:-2px;font-weight:900;color:#fff8d5;}
@@ -59,12 +106,12 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。自作ステージはこのブラウザに最大10個保存できます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="rowHalf">横一列HP半減ブロック</option><option value="colHalf">縦一列HP半減ブロック</option><option value="push_right">強制移動：右 →</option><option value="push_left">強制移動：左 ←</option><option value="push_up">強制移動：前 ↑</option><option value="push_down">強制移動：後ろ ↓</option><option value="push_upLeft">強制移動：斜め左前 ↖</option><option value="push_upRight">強制移動：斜め右前 ↗</option><option value="push_downLeft">強制移動：斜め左後ろ ↙</option><option value="push_downRight">強制移動：斜め右後ろ ↘</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><button id="customSave">💾 保存</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
 <section id="onlineRoomScreen" class="panel hidden"><h2>🌐 オンライン対決・ルーム番号</h2><p class="note"><strong>⚔️ オンライン対決のルール</strong><br>・相手と同じ6桁のルーム番号を入力して対決！<br>・先に3ポイント取ったプレイヤーが勝利！<br>・1ラウンドは60秒。時間切れは引き分け（両者0ポイント）。<br>・勝利：150コイン＋ランキング10ポイント／敗北：50コイン・ランキング10ポイント減少（0未満にはなりません）。<br>・途中退出した場合、報酬はありません。<br>・新しい称号に初めて昇格すると、1000コイン獲得！</p><div class="actions"><input id="onlineRoomNumber" inputmode="numeric" maxlength="6" placeholder="6桁のルーム番号" aria-label="ルーム番号" style="padding:12px;border-radius:8px;font-size:18px;max-width:230px"><button id="onlineJoin" type="button">ルームに参加</button><button id="onlineLeave" type="button">退出</button></div><p id="onlineStatus" class="note center" aria-live="polite">未接続</p><div class="actions"><button id="onlineChoose" type="button" class="hidden">ボールを選ぶ</button><button id="onlineBack" type="button">ステージ選択へ</button></div><div class="online-rank-actions"><button id="nationalRankBtn" type="button">🌏 対決ランキング</button><button id="rankTitlesBtn" type="button">👑 称号一覧</button></div></section>
 <section id="versusChooseScreen" class="panel hidden"><h2>⚔️ 対決用ボールを選ぼう！</h2><p class="note">相手のボールは、両方が決定するまで表示されません。</p><div class="actions"><button id="versusGacha" type="button">🎰 対決ボールガチャ（3kコイン）</button></div><p id="versusGachaInfo" class="note center">初期ボール3種類。ガチャで新しいボールを集めよう！</p><h3 id="versusChooseTitle">🔵 プレイヤー1のボールを選択</h3><div id="versusChoices1" class="versus-choices"></div><div id="versusChoices2" class="versus-choices hidden"></div><p id="versusChooseHp" class="center" style="font-size:19px;font-weight:bold;color:#ffe27b" aria-live="polite">ボールを選ぶとHPが表示されます</p><p id="versusChooseInfo" class="note center"></p><div class="actions"><button id="versusConfirm" type="button" disabled>このボールに決定</button><button id="versusStart" type="button" class="hidden" disabled>⚔️ フィールドへ進む</button><button id="versusChooseBack" type="button">ステージ選択に戻る</button></div></section>
-<section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">通常ステージと同じように、迷路の上でマウスを動かして狙い、クリックして決定してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">マウスで狙い、Enterキーまたは下のボタンで方向を決定してください。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
+<section id="versusDirectionScreen" class="panel hidden"><h2>🎯 発射方向を決めよう！</h2><p class="note center">迷路をマウスで狙うか、スマホでは盤面をタップして方向を選び、下の「この方向で決定」を押してください。相手の狙いは開始まで見えません。</p><div style="display:flex;justify-content:center"><canvas id="versusAimBoard" width="480" height="600" style="max-width:100%;touch-action:none;cursor:crosshair" aria-label="発射方向を狙う対決盤面"></canvas></div><p class="note center" id="versusDirectionStatus">盤面をタップして狙い、下のボタンで方向を決定してください。PCではEnterキーも使えます。</p><div class="actions"><button type="button" id="versusAimConfirm">この方向で決定</button><button type="button" id="versusDirectionBack">ルームへ戻る</button></div></section>
 <section id="versusScreen" class="panel hidden"><h2>⚔️ 3点先取の対決モード</h2><p id="versusRankInfo" class="center" style="font-weight:bold;color:#ffe27b">あなたの称号：🌱 見習い ／ 対戦ポイント：0pt</p><p id="versusScore" class="center" style="font-size:20px;font-weight:bold">🔵 0勝　―　0勝 🔴</p><p id="versusCountdown" class="center" style="font-size:34px;font-weight:bold;color:#ffe27b" aria-live="polite"></p><div id="versusAbilities" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0" aria-live="polite"><div id="versusAbility1" style="padding:12px;border:1px solid #46c7ff;border-radius:10px"></div><div id="versusAbility2" style="padding:12px;border:1px solid #ff7777;border-radius:10px"></div></div><div style="display:flex;justify-content:center"><canvas id="versusBoard" width="480" height="600" aria-label="対決用8×10マス迷路"></canvas></div><p class="note" style="text-align:center">🔵 プレイヤー1：<strong id="versusHp1">10 / 10 HP</strong>　　🔴 プレイヤー2：<strong id="versusHp2">10 / 10 HP</strong></p><p id="versusSpecialStatus" class="note center">⚡ 各プレイヤー1回ずつ瞬間移動できます</p><div class="actions"><button id="versusTeleport" type="button">⚡ 瞬間移動</button><button id="versusSurrender" type="button">🏳️ 降参</button></div><div class="actions"><button id="versusReselect" type="button">次のラウンドへ</button><button id="versusBack" type="button">ステージ選択に戻る</button></div></section>
 <section id="nationalRankScreen" class="panel hidden"><h2>🌏 全国対戦ポイントランキング TOP 100</h2><p class="note">全国のプレイヤーの対戦ポイント・称号を表示します。プレイヤーIDは公開しません。※オンラインランキングはインターネット接続とSupabaseのSQL設定が必要です。</p><p id="nationalRankStatus" class="note center" aria-live="polite">読み込み前</p><p id="nationalMyRank" class="note center" aria-live="polite"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>称号</th><th>ポイント</th></tr></thead><tbody id="nationalRankRows"></tbody></table></div><div class="actions"><button id="nationalRankRefresh" type="button">🔄 更新</button><button data-open="online" type="button">戻る</button></div></section>
 <section id="rankTitlesScreen" class="panel hidden"><h2>👑 称号一覧</h2><p class="note">対決ポイントで獲得できる称号です。各称号に初めて昇格したときだけ1000コインを獲得できます。</p><p id="rankTitlesCurrent" class="center"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>必要ポイント</th><th>称号</th></tr></thead><tbody id="rankTitlesRows"></tbody></table></div><div class="actions"><button data-open="online" type="button">ルーム画面に戻る</button></div></section>
 <section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingMyRank" class="note"></p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="rankingHub">戻る</button></div></section>
-<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><div class="actions"><button id="ipadShootBtn" type="button">🚀 ボールを発射する</button><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
+<section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><div class="actions"><button id="ipadShootBtn" type="button">🚀 発射！</button><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
 <section id="skinsScreen" class="panel hidden"><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
 <section id="settingsScreen" class="panel hidden"><h2>設定</h2>
 <label><input type="checkbox" id="guideSetting"> 発射ガイド線を表示</label>
@@ -295,12 +342,19 @@ function renderSlots(){
  });
 }
 function startNew(){store.slots[slot]=newData();persist();askPlayerName(()=>{show("select");dailyReward(()=>tutorial())},false)}
-function tutorial(){if(data().tutorial)return;const pages=[
-["ようこそ！","マウスを動かすか、← → キーで発射角度を調整します。左クリックかスペースキーで球を発射します。"],
-["ブロックの種類","通常ブロックは数字の分だけダメージが必要です。爆発ブロックは周囲8マスの壊せるブロックを連鎖破壊します。鉄ブロックは壊れません。"],
-["パワーアップ","攻撃力アップは通常ステージで×1.5、ミニゲームで×2です。速度は×1.5、＋1は球の数を増やします。各球は同じアイテムを一度だけ利用できます。"],
-["星とセーブ","スキンごとに1発のダメージと連続発射する球の数が異なります。スキン選択画面で確認できます。少ない発射回数でクリアすると星が増えます。ステージ開始時とクリア時に手動セーブできます。クリア時は自動セーブされます。"]];
-let n=0;function page(){modal(`チュートリアル ${n+1}/${pages.length}：${pages[n][0]}`,`<p>${pages[n][1]}</p>`,[[n===pages.length-1?"始める":"次へ",()=>{n++;if(n<pages.length)page();else{data().tutorial=true;persist();closeModal();startStage(1)}}]])}page()}
+function tutorial(){if(data().tutorial)return;
+// 図はHTML内のSVGで描画するため、新しい画像ファイルは不要。
+const diagrams=[
+`<svg viewBox="0 0 360 150" role="img" aria-label="下の青いボールから矢印の方向に発射して、上のブロックに当てる図"><rect x="112" y="15" width="58" height="38" rx="7" fill="#f6a65c"/><text x="141" y="40" text-anchor="middle" fill="#162b43" font-size="21" font-weight="bold">3</text><rect x="188" y="15" width="58" height="38" rx="7" fill="#f6a65c"/><text x="217" y="40" text-anchor="middle" fill="#162b43" font-size="21" font-weight="bold">2</text><circle cx="180" cy="130" r="13" fill="#67d6ff" stroke="white" stroke-width="3"/><path d="M180 111 L180 72 L160 89 M180 72 L200 89" fill="none" stroke="#ffe16e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><text x="16" y="135" fill="#d9edff" font-size="14">← → で角度を調整</text></svg>`,
+`<svg viewBox="0 0 360 150" role="img" aria-label="普通のブロック、爆弾、鉄ブロックの違い"><rect x="24" y="25" width="85" height="65" rx="8" fill="#f6a65c"/><text x="66" y="68" text-anchor="middle" fill="#1a293e" font-size="32" font-weight="bold">3</text><rect x="138" y="25" width="85" height="65" rx="8" fill="#e76464"/><text x="180" y="68" text-anchor="middle" fill="white" font-size="33">💣</text><rect x="251" y="25" width="85" height="65" rx="8" fill="#7d8b9a" stroke="#d3e0ee" stroke-width="3"/><path d="M263 35 L324 80 M324 35 L263 80" stroke="#b4c1d0" stroke-width="5"/><text x="66" y="112" text-anchor="middle" fill="white" font-size="14">数字の分だけ</text><text x="180" y="112" text-anchor="middle" fill="white" font-size="14">爆発する</text><text x="293" y="112" text-anchor="middle" fill="white" font-size="14">壊せない</text></svg>`,
+`<svg viewBox="0 0 360 150" role="img" aria-label="攻撃力アップ、スピードアップ、ボール追加のアイテム"><circle cx="70" cy="56" r="30" fill="#f8a952"/><text x="70" y="65" text-anchor="middle" fill="#1b263a" font-size="27" font-weight="bold">×1.5</text><circle cx="180" cy="56" r="30" fill="#67c7f4"/><text x="180" y="65" text-anchor="middle" fill="#1b263a" font-size="26">⚡</text><circle cx="290" cy="56" r="30" fill="#83e3a1"/><text x="290" y="65" text-anchor="middle" fill="#1b263a" font-size="26" font-weight="bold">+1</text><text x="70" y="110" text-anchor="middle" fill="white" font-size="15">攻撃力</text><text x="180" y="110" text-anchor="middle" fill="white" font-size="15">速度</text><text x="290" y="110" text-anchor="middle" fill="white" font-size="15">ボール数</text></svg>`,
+`<svg viewBox="0 0 360 150" role="img" aria-label="発射回数が少ないほど星を多く獲得する図"><text x="180" y="56" text-anchor="middle" fill="#ffdf6e" font-size="42">★ ★ ★</text><text x="180" y="91" text-anchor="middle" fill="white" font-size="19">少ない発射回数でクリア！</text><rect x="103" y="105" width="154" height="30" rx="9" fill="#407bb1"/><text x="180" y="126" text-anchor="middle" fill="white" font-size="16">💾 セーブ</text></svg>`];
+const pages=[
+["ようこそ！","マウスを動かすか、← → キーで発射角度を調整します。左クリックかスペースキーでボールを発射します。","ボールを上のブロックに当てよう！"],
+["ブロックの種類","普通のブロックは数字の分だけダメージが必要です。爆弾ブロックは周りのブロックを巻き込んで爆発します。鉄ブロックは壊せません。","色とマークで見分けよう！"],
+["パワーアップ","攻撃力アップは通常ステージで×1.5、ミニゲームで×2です。速度アップは×1.5、＋1はボールの数を増やします。","アイテムを取るとボールが強くなる！"],
+["星とセーブ","スキンごとに攻撃力とボールの数が違います。少ない発射回数でクリアすると星が増えます。ステージ開始時とクリア時に手動セーブでき、クリア時は自動セーブされます。","星を集めて、記録をセーブしよう！"]];
+let n=0;function page(){modal(`チュートリアル ${n+1}/${pages.length}：${pages[n][0]}`,`<figure class="tutorial-figure">${diagrams[n]}<figcaption>${pages[n][2]}</figcaption></figure><p class="tutorial-text">${pages[n][1]}</p>`,[[n===pages.length-1?"始める":"次へ",()=>{n++;if(n<pages.length)page();else{data().tutorial=true;persist();closeModal();startStage(1)}}]])}page()}
 // デイリー報酬は選択したセーブデータごとに、端末の現地日付で1日1回。
 function dailyReward(after){
  const d=data();if(!d)return;
@@ -446,8 +500,20 @@ const VERSUS_BALL_TYPES=[
 {name:'ヴェノム',color:'#8bc85b',symbol:'🐍',desc:'特殊能力：毒のトラップを生成'},
 {name:'クロム',color:'#c6c8d3',symbol:'🔩',desc:'特殊能力：受けるダメージを半減'},
 {name:'ミスティック',color:'#ba8af2',symbol:'🔮',desc:'特殊能力：一定確率で攻撃を回避'},
-{name:'ゴールデン',color:'#e9bb49',symbol:'👑',desc:'特殊能力：5回に1回強力な攻撃'}];
-const VERSUS_ABILITIES = ["burn", "heal", "speed", "guard", "shadow", "star", "slow", "rock", "wind", "poison", "magma", "metal", "thunder", "mirage", "leaf", "comet", "crystal", "phantom", "sun", "moon", "aurora", "nebula", "phoenix", "blizzard", "titan", "sakura", "ocean", "cactus", "gold", "diamond", "rainbow", "spark", "blackhole", "pearl", "dragon", "cosmo", "tornado", "emerald", "ruby", "sapphire", "burn", "heal", "speed", "guard", "shadow", "star", "slow", "comet", "poison", "metal", "mirage", "gold"];
+{name:'ゴールデン',color:'#e9bb49',symbol:'👑',desc:'特殊能力：5回に1回強力な攻撃'},
+{name:"スパイダー",color:"#c7d6e5",symbol:"🕸",desc:"特殊攻撃：壁に当たると10%で永久ロープを張る。相手が触れると1ダメージ"},
+{name:"マグネット",color:"#e77b90",symbol:"🧲",desc:"特殊攻撃：衝突時に相手の速度を20%低下"},
+{name:"バンパー",color:"#f0b24f",symbol:"🎱",desc:"特殊攻撃：衝突すると相手を勢いよく弾き飛ばす"},
+{name:"ヴァンパイア",color:"#ad5ed5",symbol:"🦇",desc:"特殊攻撃：衝突時に与えたダメージの一部を吸収して回復"},
+{name:"ブーメラン",color:"#a6e3a1",symbol:"🪃",desc:"特殊攻撃：壁に5回当たるたびに進行方向を逆転"},
+{name:"プリズム",color:"#75d8ed",symbol:"🔷",desc:"特殊攻撃：衝突4回ごとに相手へ追加2ダメージ"},
+{name:"ショック",color:"#f8dd63",symbol:"💥",desc:"特殊攻撃：壁に当たると12%で衝撃波。近くの相手に1ダメージ"},
+{name:"リジェネ",color:"#77d994",symbol:"💚",desc:"特殊攻撃：壁に12回当たるごとにHPを1回復"},
+{name:"フェーズ",color:"#b7a8e6",symbol:"👻",desc:"特殊攻撃：衝突5回ごとに受けるダメージを無効化"},
+{name:"スピナー",color:"#7ad2f0",symbol:"🌀",desc:"特殊攻撃：壁に6回当たるごとに速度が15%アップ"},
+{name:"ソーラー",color:"#f5a34c",symbol:"🌞",desc:"特殊攻撃：衝突3回ごとに追加3ダメージ"},
+{name:"アンカー",color:"#8fa2c2",symbol:"⚓",desc:"特殊攻撃：衝突時に相手の速度を35%低下"}];
+const VERSUS_ABILITIES = ["burn", "heal", "speed", "guard", "shadow", "star", "slow", "rock", "wind", "poison", "magma", "metal", "thunder", "mirage", "leaf", "comet", "crystal", "phantom", "sun", "moon", "aurora", "nebula", "phoenix", "blizzard", "titan", "sakura", "ocean", "cactus", "gold", "diamond", "rainbow", "spark", "blackhole", "pearl", "dragon", "cosmo", "tornado", "emerald", "ruby", "sapphire", "burn", "heal", "speed", "guard", "shadow", "star", "slow", "comet", "poison", "metal", "mirage", "gold", "web", "magnet", "bumper", "vampire", "boomerang", "prism", "shockwave", "regen", "phase", "spinner", "solarflare", "anchor"];
 function versusAbility(index){return VERSUS_ABILITIES[Math.max(0,Math.min(VERSUS_BALL_TYPES.length-1,index|0))]||"burn"}
 function versusSpeed(index){const a=versusAbility(index);return ({speed:1.2,wind:1.25,comet:1.18,spark:1.15,tornado:1.25,titan:.9})[a]||1}
 function versusAttack(index,hits){const a=versusAbility(index);let d=1;
@@ -701,13 +767,14 @@ $("versusGacha").onclick=()=>{
  if(onlineReady&&!aiVersusMode){toast("ボール決定後はガチャを回せません");return;}
  if((Number(d.coins)||0)<VERSUS_GACHA_PRICE){toast("コインが足りません（必要：3kコイン）");return;}
  const owned=ownedVersusBalls();
- const pool=VERSUS_BALL_TYPES.map((_,i)=>i).filter(i=>!owned.includes(i));
- if(!pool.length){toast("すべての対決ボールを集めました！");return;}
- const picked=pool[Math.floor(Math.random()*pool.length)];
+ // 所持済みも含めて全種類から抽選する。重複しても3000コイン消費する。
+ const picked=Math.floor(Math.random()*VERSUS_BALL_TYPES.length);
+ const duplicate=owned.includes(picked);
  d.coins-=VERSUS_GACHA_PRICE;
- d.versusOwnedBalls=[...owned,picked];
- persist();versusSelected[onlineSeat<0?0:onlineSeat]=picked;
- toast("🎉 "+VERSUS_BALL_TYPES[picked].name+"をゲット！");
+ if(!duplicate)d.versusOwnedBalls=[...owned,picked];
+ persist();
+ if(!duplicate)versusSelected[onlineSeat<0?0:onlineSeat]=picked;
+ toast(duplicate?"🔁 "+VERSUS_BALL_TYPES[picked].name+"が被りました！":"🎉 "+VERSUS_BALL_TYPES[picked].name+"をゲット！");
  renderVersusChoices();
  void syncCurrencyRanking();
 };
@@ -719,8 +786,8 @@ function renderVersusChoices(){
  const owned=ownedVersusBalls();
  const selected=versusSelected[turn];
  $("versusChooseHp").textContent=owned.includes(selected)?`❤️ 選択中：${VERSUS_BALL_TYPES[selected].name} ／ 最大HP ${versusMaxHp(selected)}`:"ボールを選ぶとHPが表示されます";
- $("versusGachaInfo").textContent=`所持：${owned.length} / ${VERSUS_BALL_TYPES.length}種類｜コイン：${compactMoney(data()?.coins||0)}枚｜ガチャ1回3kコイン（未所持確定）`;
- $("versusGacha").disabled=(!aiVersusMode&&onlineReady)||owned.length===VERSUS_BALL_TYPES.length;
+ $("versusGachaInfo").textContent=`所持：${owned.length} / ${VERSUS_BALL_TYPES.length}種類｜コイン：${compactMoney(data()?.coins||0)}枚｜ガチャ1回3kコイン（重複あり）`;
+ $("versusGacha").disabled=(!aiVersusMode&&onlineReady);
  VERSUS_BALL_TYPES.forEach((ball,i)=>{
   const b=document.createElement("button");b.type="button";const unlocked=owned.includes(i);b.className="versus-choice"+(versusSelected[turn]===i?" chosen":"");
   const orb=document.createElement("span");orb.className="versus-orb";orb.style.background=ball.color;orb.textContent=ball.symbol;
@@ -746,6 +813,13 @@ function versusMaxHp(index){const i=Math.max(0,Math.min(VERSUS_BALL_TYPES.length
 const versusPlayers=[{col:0,row:9,hp:VERSUS_MAX_HP,color:"#46c7ff",label:"1",ballType:0},{col:7,row:0,hp:VERSUS_MAX_HP,color:"#ff7777",label:"2",ballType:0}];
 let versusMotionKey="",versusMotionTime=0,versusMotionState=null;
 let versusRoundResult=null,versusCollisionCooldown=-1,versusRoundSubmitting=false;
+let versusRopes=[];
+function pointSegmentDistance(px,py,ax,ay,bx,by){
+ const dx=bx-ax,dy=by-ay,len2=dx*dx+dy*dy;
+ const t=len2?Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/len2)):0;
+ return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));
+}
+
 let teleportArmed=false,teleportBusy=false,surrenderBusy=false,aiTeleportEvents=[],aiTeleportUsed=false;
 function teleportEvents(){return aiVersusMode?aiTeleportEvents:Object.values(onlineRoomData?.teleports||{}).filter(e=>e?.round===onlineRoomData?.round);}
 function teleportValid(col,row){return Number.isInteger(col)&&Number.isInteger(row)&&col>=0&&col<8&&row>=0&&row<10&&VERSUS_MAZE[row]?.[col]!== "#";}
@@ -844,7 +918,7 @@ function simulateVersusMotion(){
  if(aiVersusMode&&aiRoundHandled&&onlineRoomData?.roundResult?.reason==="surrender")return versusMotionState;
  if(!onlineStartAt||Date.now()<onlineStartAt)return null;
  const key=onlineStartAt+":"+versusPlayers.map(p=>JSON.stringify(p.direction)).join(":")+":"+JSON.stringify(teleportEvents());
- if(key!==versusMotionKey){versusMotionKey=key;versusTraps=[];versusItems=createVersusItems();versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*300*versusSpeed(p.ballType),vy:(p.direction?.y||0)*300*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
+ if(key!==versusMotionKey){versusMotionKey=key;versusRopes=[];versusTraps=[];versusItems=createVersusItems();versusMotionTime=0;versusCollisionCooldown=-1;versusRoundResult=null;versusPlayers.forEach(p=>p.hp=versusMaxHp(p.ballType));versusMotionState=versusPlayers.map(p=>({wallHits:0,trapCooldown:0,hp:versusMaxHp(p.ballType),x:24+(p.col+.5)*54,y:30+(p.row+.5)*54,vx:(p.direction?.x||0)*300*versusSpeed(p.ballType),vy:(p.direction?.y||0)*300*versusSpeed(p.ballType),hits:0,slowUntil:0}));}
  const target=Math.min(VERSUS_ROUND_SECONDS,(Date.now()-onlineStartAt)/1000),step=1/120;
  if(aiVersusMode&&target>=20&&!aiTeleportEvents.some(e=>e.seat===1)&&!aiRoundHandled){
   const cells=[];for(let row=1;row<9;row++)for(let col=1;col<7;col++)if(teleportValid(col,row))cells.push({col,row});
@@ -860,6 +934,27 @@ function simulateVersusMotion(){
    if(wallY)b.vy=-b.vy;else b.y=ny;
    // 壁に衝突したときに一定確率で、壁の手前に罠を設置する。
    const skill=versusAbility(versusPlayers[bi].ballType),cfg=VERSUS_WALL_TRAPS[skill];
+   if(wallX||wallY){
+    if(!cfg)b.wallHits++;
+    if(skill==="web"&&versusTrapRoll(bi,b.wallHits,wallX?0:1)<10){
+     // 壁の接触位置とボールの位置を永久ロープで結ぶ。
+     const wallXPos=wallX?(b.vx>0?Math.min(24+8*54-1,nx+11):Math.max(24,nx-11)):b.x;
+     const wallYPos=wallY?(b.vy>0?Math.min(30+10*54-1,ny+11):Math.max(30,ny-11)):b.y;
+     const dx=wallXPos-b.x,dy=wallYPos-b.y;
+     // 線分が極端に短くならないよう、進行方向に伸ばす。
+     const ax=b.x,ay=b.y,bx=Math.abs(dx)+Math.abs(dy)<10?b.x+Math.sign(b.vx||1)*30:wallXPos,
+       by=Math.abs(dx)+Math.abs(dy)<10?b.y+Math.sign(b.vy||1)*30:wallYPos;
+     versusRopes.push({owner:bi,ax,ay,bx,by,lastHit:-99});
+     if(versusRopes.length>40)versusRopes.shift();
+    }
+    if(skill==="shockwave"&&versusTrapRoll(bi,b.wallHits,wallX?0:1)<12){
+     const enemy=versusMotionState[1-bi];
+     if(Math.hypot(enemy.x-b.x,enemy.y-b.y)<125)enemy.hp=Math.max(0,enemy.hp-1);
+    }
+    if(skill==="regen"&&b.wallHits%12===0)b.hp=Math.min(versusMaxHp(versusPlayers[bi].ballType),b.hp+1);
+    if(skill==="boomerang"&&b.wallHits%5===0){b.vx=-b.vx;b.vy=-b.vy;}
+    if(skill==="spinner"&&b.wallHits%6===0){b.vx*=1.15;b.vy*=1.15;}
+   }
    if(cfg&&(wallX||wallY)){
     b.wallHits++;
     if(versusTrapRoll(bi,b.wallHits,wallX?0:1)<cfg.chance){
@@ -902,6 +997,13 @@ function simulateVersusMotion(){
    }
   }
   versusTraps=versusTraps.filter(t=>!t.used&&versusMotionTime<=t.expires);
+  // 永久ロープはラウンド終了まで残り、敵が触れるたびに1ダメージ。
+  for(const rope of versusRopes){
+   const enemy=versusMotionState[1-rope.owner];
+   if(versusMotionTime-rope.lastHit>=.85&&pointSegmentDistance(enemy.x,enemy.y,rope.ax,rope.ay,rope.bx,rope.by)<13){
+    enemy.hp=Math.max(0,enemy.hp-1);rope.lastHit=versusMotionTime;
+   }
+  }
   // 衝突時は双方に1ダメージ。連続接触で一瞬にHPがなくならないよう間隔を空ける。
   const a=versusMotionState[0],b=versusMotionState[1];
   if(Math.hypot(a.x-b.x,a.y-b.y)<22 && versusMotionTime-versusCollisionCooldown>.65){
@@ -921,12 +1023,24 @@ function simulateVersusMotion(){
    if(skillA==="cactus"&&damageToA>0)takenB++;
    if(skillB==="cactus"&&damageToB>0)takenA++;
    if(skillA==="magma")takenA++;
+   if(skillA==="prism"&&a.hits%4===0)takenB+=2;
+   if(skillA==="solarflare"&&a.hits%3===0)takenB+=3;
+   if(skillA==="phase"&&a.hits%5===0)takenA=0;
    if(skillB==="magma")takenB++;
+   if(skillB==="prism"&&b.hits%4===0)takenA+=2;
+   if(skillB==="solarflare"&&b.hits%3===0)takenA+=3;
+   if(skillB==="phase"&&b.hits%5===0)takenB=0;
    a.hp=Math.max(0,a.hp-takenA);b.hp=Math.max(0,b.hp-takenB);
    const healA=skillA==="leaf"||skillA==="emerald"?2:skillA==="heal"||skillA==="moon"?1:skillA==="phoenix"&&a.hp<=5?2:0;
    const healB=skillB==="leaf"||skillB==="emerald"?2:skillB==="heal"||skillB==="moon"?1:skillB==="phoenix"&&b.hp<=5?2:0;
    if(a.hp>0)a.hp=Math.min(versusMaxHp(typeA),a.hp+healA);
    if(b.hp>0)b.hp=Math.min(versusMaxHp(typeB),b.hp+healB);
+   if(skillA==="vampire"&&a.hp>0)a.hp=Math.min(versusMaxHp(typeA),a.hp+Math.max(1,Math.floor(takenB/2)));
+   if(skillB==="vampire"&&b.hp>0)b.hp=Math.min(versusMaxHp(typeB),b.hp+Math.max(1,Math.floor(takenA/2)));
+   if(["magnet","anchor"].includes(skillA)){const factor=skillA==="anchor"?.65:.8;b.vx*=factor;b.vy*=factor}
+   if(["magnet","anchor"].includes(skillB)){const factor=skillB==="anchor"?.65:.8;a.vx*=factor;a.vy*=factor}
+   if(skillA==="bumper"){b.vx*=1.45;b.vy*=1.45}
+   if(skillB==="bumper"){a.vx*=1.45;a.vy*=1.45}
    if(["slow","blizzard","blackhole","sapphire"].includes(skillA)){b.vx*=.83;b.vy*=.83}
    if(["slow","blizzard","blackhole","sapphire"].includes(skillB)){a.vx*=.83;a.vy*=.83}
    // 減速しすぎて停止しないように最低速度を維持する。
@@ -984,6 +1098,10 @@ function drawVersusBoard(){
   x.shadowBlur=0;x.fillStyle=color;x.font="bold 13px sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText(symbol,item.x,item.y);x.restore();
  }
 
+ if(moving)for(const rope of versusRopes){
+  x.save();x.strokeStyle=rope.owner===0?"#8de8ff":"#ff99b1";x.lineWidth=4;
+  x.shadowColor=x.strokeStyle;x.shadowBlur=8;x.beginPath();x.moveTo(rope.ax,rope.ay);x.lineTo(rope.bx,rope.by);x.stroke();x.restore();
+ }
  if(moving)for(const trap of versusTraps){
   const cfg=VERSUS_WALL_TRAPS[trap.skill];if(!cfg)continue;
   x.save();x.globalAlpha=.88;x.fillStyle=cfg.color;x.strokeStyle="#10243c";x.lineWidth=2;
@@ -1244,14 +1362,21 @@ function returnBalls(){
 function aimByPointer(e){if(!game||!game.waiting||paused)return;const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*W/rect.width,y=(e.clientY-rect.top)*H/rect.height;let a=Math.atan2(y-BASEY,x-game.nextX);game.aim=Math.max(-Math.PI+.12,Math.min(-.12,a))}
 // iPadOSはデスクトップ用サイト表示時にMacとして識別されるためタッチ点数も確認する。
 const isIPadDevice=/iPad/i.test(navigator.userAgent)||(/Macintosh|MacIntel/i.test(navigator.userAgent)&&navigator.maxTouchPoints>1);
-if(isIPadDevice)document.body.classList.add("ipad-mode");
+const isTouchDevice=window.matchMedia("(pointer: coarse)").matches||navigator.maxTouchPoints>0;
+if(isTouchDevice){
+ document.body.classList.add("touch-mode");
+ const hint=document.createElement("p");
+ hint.id="mobileAimHint";hint.className="note center";
+ hint.textContent="📱 盤面をタップして狙いを決め、下の「🚀 発射！」を押してください";
+ $("ipadShootBtn").parentElement.before(hint);
+}
 $("ipadShootBtn").addEventListener("click",()=>shoot());
 canvas.addEventListener("pointermove",aimByPointer);
 canvas.addEventListener("pointerdown",e=>{
  if(manualClick(e))return;
  aimByPointer(e);
  // iPadでは盤面・ボールのタップは照準調整のみ。発射は専用ボタンだけ。
- if(isIPadDevice)return;
+ if(isTouchDevice)return;
  shoot();
 });
 // 対戦の方向選択中はEnterキーでも「この方向で決定」と同じ操作を行う。
