@@ -272,7 +272,7 @@ function renderSlots(){
  store.slots.forEach((saved,i)=>{
    const box=document.createElement("div");box.className="save-slot";
    const b=document.createElement("button");b.className="slot-main";
-   const progress=saved?`到達 ${saved.unlocked} / 50 ・ 星 ${saved.stars.reduce((a,b)=>a+b,0)} / 150 ・ ${saved.coins||0}コイン ・ 💎${saved.gems||0}ジェム`:"未作成";
+   const progress=saved?`到達 ${saved.unlocked} / 50 ・ 星 ${saved.stars.reduce((a,b)=>a+b,0)} / 150 ・ ${compactMoney(saved.coins)}コイン ・ 💎${compactMoney(saved.gems)}ジェム`:"未作成";
    b.textContent="";b.append(document.createTextNode(`${playerName(saved,i)}（データ ${i+1}）`),document.createElement("br"));const info=document.createElement("small");info.textContent=progress;b.appendChild(info);
    b.onclick=()=>{
      slot=i;
@@ -306,7 +306,7 @@ function dailyReward(after){
  const d=data();if(!d)return;
  const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
  if(d.dailyClaimed===today){if(after)after();return}
- modal("デイリー報酬 🎁",`<p>今日のログイン報酬は <strong>💎 300ジェム</strong> です！</p><p>現在の所持ジェム：${d.gems||0}個</p>`,[["300ジェムを受け取る",()=>{
+ modal("デイリー報酬 🎁",`<p>今日のログイン報酬は <strong>💎 300ジェム</strong> です！</p><p>現在の所持ジェム：${compactMoney(d.gems)}個</p>`,[["300ジェムを受け取る",()=>{
   if(d.dailyClaimed!==today){d.gems=(Number(d.gems)||0)+300;d.dailyClaimed=today;persist()}
   closeModal();renderSelect();toast("デイリー報酬：300ジェム獲得！");if(after)after();
  }]])
@@ -449,6 +449,20 @@ function playtimeTick(){
 setInterval(playtimeTick,1000);
 document.addEventListener("visibilitychange",()=>{playtimeLastTick=Date.now()});
 setInterval(()=>{playtimeTick();void syncCurrencyRanking()},60000);
+
+// 所持金・ジェムの表示専用。内部の数値は変えない。
+function compactMoney(value){
+ const n=Number(value)||0,abs=Math.abs(n);
+ const units=[[1e12,'t'],[1e9,'b'],[1e6,'m'],[1e3,'k']];
+ for(const [scale,suffix] of units){
+  if(abs>=scale){
+   const scaled=n/scale;
+   const digits=Math.abs(scaled)>=100?0:Math.abs(scaled)>=10?1:2;
+   return Number(scaled.toFixed(digits)).toString()+suffix;
+  }
+ }
+ return Math.floor(n).toLocaleString('ja-JP');
+}
 function playtimeLabel(seconds){
  const s=Math.max(0,Math.floor(Number(seconds)||0)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);
  return `${h}時間${m}分`;
@@ -479,7 +493,7 @@ async function showMyOnlineRank(table,type,elementId,pointsSuffix){
    if(error)throw error;earlier=count||0;
   }
   const rank=(above||0)+earlier+1;
-  el.textContent="あなたの順位："+rank+"位（"+String(own.player_name||playerName(data()))+" ／ "+(type==="play_seconds"?playtimeLabel(val):val.toLocaleString("ja-JP")+pointsSuffix)+"）";
+  el.textContent="あなたの順位："+rank+"位（"+String(own.player_name||playerName(data()))+" ／ "+(type==="play_seconds"?playtimeLabel(val):(type==="coins"||type==="gems"?compactMoney(val):val.toLocaleString("ja-JP"))+pointsSuffix)+"）";
  }catch(e){el.textContent="自分の順位を取得できません："+(e?.message||String(e));}
 }
 function isOwnRankingName(name){return !!data()?.playerName && String(name||"").trim().toLocaleLowerCase()===String(playerName(data())||"").trim().toLocaleLowerCase();}
@@ -493,7 +507,7 @@ async function loadCurrencyRanking(){
  status.textContent="全国 TOP 100 ／ "+uniqueEntries.length+"件";
  if(!entries.length){status.textContent="登録済みデータがありません。プレイヤー名を設定し、🔄 更新を押してください。";const tr=document.createElement("tr"),td=document.createElement("td");td.colSpan=3;td.textContent="まだランキングに記録がありません";tr.appendChild(td);rows.appendChild(tr);}
  await showMyOnlineRank("currency_leaderboard",type,"currencyMyRank",type==="coins"?"コイン":type==="gems"?"ジェム":"");
- uniqueEntries.forEach((r,i)=>{const tr=document.createElement("tr");[`${i+1}位`,r.player_name,type==="play_seconds"?playtimeLabel(r[type]):Number(r[type]||0).toLocaleString("ja-JP")].forEach(value=>{const td=document.createElement("td");td.textContent=value;td.style.padding="9px 5px";td.style.borderBottom="1px solid #416d9b";tr.appendChild(td)});markOwnRankingRow(tr,r.player_name);rows.appendChild(tr)});
+ uniqueEntries.forEach((r,i)=>{const tr=document.createElement("tr");[`${i+1}位`,r.player_name,type==="play_seconds"?playtimeLabel(r[type]):(type==="coins"||type==="gems"?compactMoney(r[type]):Number(r[type]||0).toLocaleString("ja-JP"))].forEach(value=>{const td=document.createElement("td");td.textContent=value;td.style.padding="9px 5px";td.style.borderBottom="1px solid #416d9b";tr.appendChild(td)});markOwnRankingRow(tr,r.player_name);rows.appendChild(tr)});
  }catch(e){status.textContent="ランキングを取得できません："+(e?.message||String(e))+"（SupabaseのAuthenticationで匿名ログインが有効か確認してください）";console.warn(e);}
 }
 async function syncNationalRanking(){
@@ -842,19 +856,19 @@ function drawVersusBoard(){
   x.fillRect(bx,by,bw*Math.max(0,Math.min(1,hp/versusMaxHp(ballType))),bh);
  }
 }
-function renderSelect(){const d=data();$("playerNameTop").textContent=`👤 ${playerName(d)}`;$("progressText").textContent=`👤 ${playerName(d)} ／ 🪙 所持コイン：${Number(d.coins)||0}枚 ／ 💎 所持ジェム：${Number(d.gems)||0}個 ／ ${versusRankInfo().name}（${versusRankInfo().points}pt） ／ 到達ステージ ${d.unlocked} ／ 星 ${starsTotal()} / 150`;const el=$("stages");el.replaceChildren();for(let n=1;n<=50;n++){const b=document.createElement("button");b.disabled=n>d.unlocked;b.innerHTML=`${n}<br><small>${d.stars[n-1]>0?"★".repeat(d.stars[n-1])+"☆".repeat(3-d.stars[n-1]):n===d.unlocked?"挑戦可能":"🔒"}</small>`;b.onclick=()=>startStage(n);el.appendChild(b)}}
+function renderSelect(){const d=data();$("playerNameTop").textContent=`👤 ${playerName(d)}`;$("progressText").textContent=`👤 ${playerName(d)} ／ 🪙 所持コイン：${compactMoney(d.coins)}枚 ／ 💎 所持ジェム：${compactMoney(d.gems)}個 ／ ${versusRankInfo().name}（${versusRankInfo().points}pt） ／ 到達ステージ ${d.unlocked} ／ 星 ${starsTotal()} / 150`;const el=$("stages");el.replaceChildren();for(let n=1;n<=50;n++){const b=document.createElement("button");b.disabled=n>d.unlocked;b.innerHTML=`${n}<br><small>${d.stars[n-1]>0?"★".repeat(d.stars[n-1])+"☆".repeat(3-d.stars[n-1]):n===d.unlocked?"挑戦可能":"🔒"}</small>`;b.onclick=()=>startStage(n);el.appendChild(b)}}
 function renderSkins(){const total=starsTotal(),el=$("skins");el.replaceChildren();$("skinInfo").textContent=`星 ${total} / 150 ・ 全${SKINS.length}種類 ・ 5個ごとに解放 ・ 現在のダメージ ${skinPower().damage} ・ 発射ボール ${skinPower().balls}個`;SKINS.forEach(([name,color],i)=>{const need=i*5,b=document.createElement("button");b.disabled=total<need;b.innerHTML=`<span class="skinball" style="background:${color};color:${color}"></span>${name}<br><small>${total<need?`星 ${need} 個で解放`:data().skin===i?`使用中・攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`:`攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`}</small>`;b.onclick=()=>{data().skin=i;data().activeCoinSkin=-1;data().activeGemSkin=-1;persist();renderSkins()};el.appendChild(b)});
  const coins=$('coinSkins');coins.replaceChildren();
  COIN_SKINS.forEach((c,i)=>{const owned=data().coinSkins.includes(i),active=data().activeCoinSkin===i,b=document.createElement('button');
- b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">🪙 ${c.price.toLocaleString()}コイン<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
+ b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">🪙 ${compactMoney(c.price)}コイン<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
  b.disabled=active||(!owned&&data().coins<c.price);
  b.onclick=()=>{if(!owned){if(data().coins<c.price)return;data().coins-=c.price;data().coinSkins.push(i)}data().activeCoinSkin=i;data().activeGemSkin=-1;persist();renderSkins()};coins.appendChild(b)});
  const gems=$('gemSkins');gems.replaceChildren();
  GEM_SKINS.forEach((c,i)=>{const owned=data().gemSkins.includes(i),active=data().activeGemSkin===i,b=document.createElement('button');
- b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">💎 ${c.price.toLocaleString()}ジェム<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
+ b.innerHTML=`<span class="skinball" style="background:${c.color};color:${c.color}"></span><strong>${c.name}</strong><small>攻撃 ${c.damage} × ${c.balls}球</small><span class="ability-label">✨ 特殊能力</span><span class="ability-text">${c.desc}</span><span class="coin-status">💎 ${compactMoney(c.price)}ジェム<br>${active?'✓ 使用中':owned?'購入済み・装備する':'未購入'}</span>`;
  b.disabled=active||(!owned&&data().gems<c.price);
  b.onclick=()=>{if(!owned){if(data().gems<c.price)return;data().gems-=c.price;data().gemSkins.push(i)}data().activeGemSkin=i;data().activeCoinSkin=-1;persist();renderSkins()};gems.appendChild(b)});
- $('skinInfo').textContent+=` ・ 🪙 ${data().coins.toLocaleString()}コイン ・ 💎 ${data().gems.toLocaleString()}ジェム`;
+ $('skinInfo').textContent+=` ・ 🪙 ${compactMoney(data().coins)}コイン ・ 💎 ${compactMoney(data().gems)}ジェム`;
 }
 function renderSettings(){const s=store.settings;$("bgmEnabledSetting").checked=s.bgmEnabled!==false;$("guideSetting").checked=s.guide;$("brightnessSetting").value=s.brightness;$("effectsSetting").value=s.effects;$("aimSetting").value=s.aim;$("gameSpeedSetting").value=s.gameSpeed||"1";$("soundVolumeSetting").value=s.soundVolume??100;$("soundVolumeValue").textContent=(s.soundVolume??100)+"%";$("soundStyleSetting").value=s.soundStyle||"normal"}
 for(const [id,key] of [["guideSetting","guide"],["brightnessSetting","brightness"],["effectsSetting","effects"],["aimSetting","aim"],["gameSpeedSetting","gameSpeed"]])$(id).addEventListener("change",e=>{store.settings[key]=key==="guide"?e.target.checked:e.target.value;persist()});
@@ -1510,8 +1524,8 @@ function playStageClearSound(){
 function finishStage(){const g=game;if(!g||g.cleared)return;if(g.custom){g.cleared=true;g.waiting=true;playStageClearSound();updateStats();modal("🎉 自作ステージクリア！",`<p>発射回数：${g.shots}回</p><p>自作ステージでは星・通常ステージの進行度は変わりません。コインブロックの報酬は獲得できます。</p>`,[["もう一度",()=>startCustomStage()],["編集画面に戻る",()=>{closeModal();show("custom")}],["ステージ選択へ",()=>{closeModal();show("select")}] ]);return;} g.cleared=true;playStageClearSound();g.waiting=true;const stars=g.shots<=g.three?3:g.shots<=g.two?2:1,d=data();const reward=d.coinClaimed[g.n-1]?50:g.n*100;d.coins+=reward;d.coinClaimed[g.n-1]=true;g.clearReward=reward;d.stars[g.n-1]=Math.max(d.stars[g.n-1],stars);d.unlocked=Math.max(d.unlocked,Math.min(50,g.n+1));d.checkpoint=Math.min(50,g.n+1);persist();updateStats();
 const buttons=[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["手動セーブ",()=>{persist();toast("保存しました")}],["ステージ選択へ",()=>{closeModal();show("select")}]];
 if(g.n<50)buttons.unshift(["次のステージ",()=>startStage(g.n+1)]);
-if(g.n===50){modal("🎉 GAME CLEAR! 🎉",`<p>全50ステージクリア！</p><div class="final-stars"><p>ステージ50の獲得した星</p><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong><p>${stars} / 3 個</p></div><p>今回の発射回数：${g.shots}</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${d.coins}枚</p><p>合計の星：${starsTotal()} / 150</p><p>🎆 ✨ 🎊 ✨ 🎆</p>`,[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}],["タイトルへ",()=>{closeModal();show("home")}]])}
-else modal(`ステージ ${g.n} クリア！`,`<h1>${"★".repeat(stars)}${"☆".repeat(3-stars)}</h1><p>発射回数：${g.shots}回</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${d.coins}枚</p><p>合計の星：${starsTotal()} / 150</p>`,buttons)}
+if(g.n===50){modal("🎉 GAME CLEAR! 🎉",`<p>全50ステージクリア！</p><div class="final-stars"><p>ステージ50の獲得した星</p><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong><p>${stars} / 3 個</p></div><p>今回の発射回数：${g.shots}</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${compactMoney(d.coins)}枚</p><p>合計の星：${starsTotal()} / 150</p><p>🎆 ✨ 🎊 ✨ 🎆</p>`,[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}],["タイトルへ",()=>{closeModal();show("home")}]])}
+else modal(`ステージ ${g.n} クリア！`,`<h1>${"★".repeat(stars)}${"☆".repeat(3-stars)}</h1><p>発射回数：${g.shots}回</p><p>獲得コイン：${g.clearReward}枚</p><p>所持コイン：${compactMoney(d.coins)}枚</p><p>合計の星：${starsTotal()} / 150</p>`,buttons)}
 function showClearResult(){const g=game;if(!g)return;const stars=data().stars[g.n-1];const buttons=[["もう一度",()=>startStage(g.n)],["ボールを変更",openResultSkins],["ステージ選択へ",()=>{closeModal();show("select")}]];if(g.n<50)buttons.unshift(["次のステージ",()=>startStage(g.n+1)]);if(g.n===50)buttons.push(["タイトルへ",()=>{closeModal();show("home")}]);else buttons.push(["手動セーブ",()=>{persist();toast("保存しました")}]);modal(g.n===50?"🎉 GAME CLEAR! 🎉":`ステージ ${g.n} クリア！`,g.n===50?`<p>全50ステージクリア！</p><div class="final-stars"><p>ステージ50の獲得した星</p><strong>${"★".repeat(stars)}${"☆".repeat(3-stars)}</strong><p>${stars} / 3 個</p></div><p>発射回数：${g.shots}回</p><p>合計の星：${starsTotal()} / 150</p>`:`<h1>${"★".repeat(stars)}${"☆".repeat(3-stars)}</h1><p>発射回数：${g.shots}回</p><p>合計の星：${starsTotal()} / 150</p>`,buttons)}
 function confirmRestart(){if(!game||screen!=="play")return;const mini=!!game.mini,stage=game.n;modal("やり直しますか？","<p>現在のプレイ状況はリセットされます。獲得済みのコインやセーブデータは消えません。</p>",[["やり直す",()=>{if(mini)startMiniGame();else if(game.custom)startCustomStage();else startStage(stage)}],["キャンセル",()=>pauseMenu()]])}
 function pauseMenu(){if(!game||screen!=="play")return;paused=true;if(game.mini){modal("一時停止","<p>ミニゲームを一時停止しています。</p>",[["ゲームに戻る",()=>{closeModal();paused=false}],["やり直す",()=>confirmRestart()],["ステージ選択",()=>{closeModal();paused=false;show("select")}],["タイトルに戻る",()=>{closeModal();paused=false;show("home")}]]);return}modal("一時停止","<p>ゲームを一時停止しています。</p>",[["ゲームに戻る",()=>{closeModal();paused=false}],["やり直す",()=>confirmRestart()],["設定",()=>{closeModal();settingsBack="play";show("settings")}],["ボールの見た目変更",()=>{closeModal();show("skins");previousScreen="play"}],["ステージ選択",()=>{closeModal();paused=false;show("select")}],["タイトルに戻る",()=>{closeModal();paused=false;show("home")}]])}
