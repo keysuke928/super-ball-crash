@@ -103,7 +103,7 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <body><div class="wrap">
 <section id="home" class="panel center"><canvas id="menuBg"></canvas><h1>スーパーボールクラッシュ</h1><p>SUPER BALL CRASH — 全50ステージ</p><div class="actions"><button id="newBtn">はじめから</button><button id="continueBtn">つづきから</button><button data-open="settings">設定</button></div><p class="note">星を集めてボールの見た目を解放しよう！</p></section>
 <section id="slotScreen" class="panel hidden"><h2 id="slotHeading">セーブデータ選択</h2><div id="slots" class="slots"></div><div class="actions"><button data-open="home">戻る</button></div></section>
-<section id="selectScreen" class="panel hidden"><div class="player-name-bar"><span id="playerNameTop" class="player-name-label">👤 名前</span><button id="renamePlayerBtn" type="button" title="プレイヤー名を変更" aria-label="プレイヤー名を変更">✏️</button><button id="rulebookBtn" type="button">📖 ルールブック</button></div><h2>ステージ選択</h2><p id="progressText"></p><div id="stages" class="stages"></div><div class="actions"><button type="button" disabled title="ショップは準備中です">ショップ（準備中）</button><button id="adminCodeBtn" type="button">🔑 管理人用コード</button><button id="customStageBtn" type="button">🛠️ 自作ステージ</button><button id="versusBtn" type="button">⚔️ 対決モード</button><button id="aiVersusBtn" type="button">🤖 AIと対決</button><button id="minigameBtn" type="button" title="毎ターン3〜8個のブロックが落ちてくるモード">ミニゲーム版</button><button data-open="skins">ボールの見た目</button><button data-open="settings">設定</button><button data-open="home">タイトルへ</button></div><div class="actions" style="margin-top:22px"><button id="rankingHubBtn" type="button" style="min-width:220px">🏆 ランキング</button></div></section>
+<section id="selectScreen" class="panel hidden"><div class="player-name-bar"><span id="playerNameTop" class="player-name-label">👤 名前</span><button id="renamePlayerBtn" type="button" title="プレイヤー名を変更" aria-label="プレイヤー名を変更">✏️</button><button id="rulebookBtn" type="button">📖 ルールブック</button></div><h2>ステージ選択</h2><p id="progressText"></p><div id="stages" class="stages"></div><div class="actions"><button type="button" disabled title="ショップは準備中です">ショップ（準備中）</button><button id="feedbackBtn" type="button">📝 ご意見を送る</button><button id="feedbackAdminBtn" type="button">📬 ご意見管理（管理人）</button><button id="adminCodeBtn" type="button">🔑 管理人用コード</button><button id="customStageBtn" type="button">🛠️ 自作ステージ</button><button id="versusBtn" type="button">⚔️ 対決モード</button><button id="aiVersusBtn" type="button">🤖 AIと対決</button><button id="minigameBtn" type="button" title="毎ターン3〜8個のブロックが落ちてくるモード">ミニゲーム版</button><button data-open="skins">ボールの見た目</button><button data-open="settings">設定</button><button data-open="home">タイトルへ</button></div><div class="actions" style="margin-top:22px"><button id="rankingHubBtn" type="button" style="min-width:220px">🏆 ランキング</button></div></section>
 <section id="rankingHubScreen" class="panel hidden"><h2>🏆 ランキング</h2><p class="note">見たいランキングを選んでください。</p><div class="actions"><button id="rankingMiniBtn" type="button">🎮 ミニゲームランキング</button><button id="rankingCoinsBtn" type="button">🪙 コインランキング</button><button id="rankingGemsBtn" type="button">💎 ジェムランキング</button><button id="rankingTimeBtn" type="button">⏱️ プレイ時間ランキング</button></div><div class="actions"><button data-open="select" type="button">ステージ選択へ</button></div></section>
 <section id="currencyRankScreen" class="panel hidden"><h2 id="currencyRankTitle">ランキング</h2><p class="note" id="currencyRankStatus">読み込み中…</p><p class="note" id="currencyMyRank" aria-live="polite"></p><div style="overflow-x:auto"><table style="width:100%;text-align:left;border-collapse:collapse"><thead><tr><th>順位</th><th>プレイヤー名</th><th id="currencyRankUnit">所持数</th></tr></thead><tbody id="currencyRankRows"></tbody></table></div><p class="note">全国TOP100と、自分の順位（100位より下でも表示）を確認できます。全国ランキングはオンラインで集計します。プレイ時間はこのブラウザでゲームを開いている時間を記録します（過去の時間は含みません）。</p><div class="actions"><button id="currencyRankRefresh" type="button">🔄 更新</button><button id="currencyRankBack" type="button">ランキングに戻る</button></div></section>
 <section id="customStageScreen" class="panel hidden"><h2>🛠️ 自作ステージ</h2><p class="note">8×10マスの好きな場所にブロック・モンスター・アイテムを置こう！ マスをクリックすると選んだものを配置できます。自作ステージはこのブラウザに最大10個保存できます。</p><div class="actions"><label>ステージ名 <input id="customName" maxlength="24" value="ぼくのステージ" style="padding:8px;max-width:190px"></label><label>道具 <select id="customTool"><option value="normal">普通のブロック</option><option value="bomb">爆発ブロック</option><option value="iron">鉄ブロック</option><option value="glass">ガラスブロック（ダメージ2倍）</option><option value="armor">強化ブロック（ダメージ半分）</option><option value="coin">コインブロック（破壊で10コイン）</option><option value="monster">モンスター</option><option value="moving">動くモンスター</option><option value="boss">ボス</option><option value="movingBoss">動くボス</option><option value="damage">攻撃力アイテム</option><option value="speed">速度アイテム</option><option value="split">分裂アイテム</option><option value="bounce">反射アイテム</option><option value="rowHalf">横一列HP半減ブロック</option><option value="colHalf">縦一列HP半減ブロック</option><option value="push_right">強制移動：右 →</option><option value="push_left">強制移動：左 ←</option><option value="push_up">強制移動：前 ↑</option><option value="push_down">強制移動：後ろ ↓</option><option value="push_upLeft">強制移動：斜め左前 ↖</option><option value="push_upRight">強制移動：斜め右前 ↗</option><option value="push_downLeft">強制移動：斜め左後ろ ↙</option><option value="push_downRight">強制移動：斜め右後ろ ↘</option><option value="erase">消しゴム</option></select></label><label>HP <input id="customHp" type="number" min="1" max="999" value="5" style="width:65px;padding:8px"></label></div><div style="display:flex;justify-content:center"><canvas id="customCanvas" width="480" height="530" style="max-width:100%;touch-action:none;cursor:crosshair;border:1px solid #6884a7;border-radius:8px" aria-label="自作ステージの8×10編集盤面"></canvas></div><p class="note center" id="customInfo"></p><div class="actions"><button id="customSave">💾 保存</button><button id="customPlay">▶ テストプレイ</button><button id="customClear">全部消す</button><button id="customBack">ステージ選択へ</button></div><h3>保存した自作ステージ</h3><div id="customSaved" class="actions"></div></section>
@@ -1166,6 +1166,59 @@ function drawVersusBoard(){
   x.fillRect(bx,by,bw*Math.max(0,Math.min(1,hp/versusMaxHp(ballType))),bh);
  }
 }
+
+// ご意見箱：一般プレイヤーは投稿のみ。閲覧はSupabase RLSで管理者UIDだけに制限。
+let feedbackAdminDb=null;
+function feedbackSafeText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function feedbackAdminClient(){
+ if(!feedbackAdminDb)feedbackAdminDb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{
+  auth:{storageKey:"sbc-feedback-admin-auth",persistSession:true,autoRefreshToken:true}
+ });
+ return feedbackAdminDb;
+}
+function openFeedbackForm(){
+ modal("📝 ご意見箱",`<p>「もっとこうなればいいな！」というアイデアを送ってね。</p>
+ <p class="note">投稿内容は管理人だけが読めます。ほかのプレイヤーには公開されません。名前・住所・電話番号・メールアドレスなどの個人情報は書かないでください。</p>
+ <label for="feedbackMessage">ゲームへのアイデア（500文字まで）</label>
+ <textarea id="feedbackMessage" maxlength="500" rows="6" style="width:100%;box-sizing:border-box;font-size:16px" placeholder="例：ステージの種類を増やしてほしい！"></textarea>
+ <p id="feedbackStatus" class="note" aria-live="polite"></p>`,[
+ ["送信する",async()=>{
+  const message=$("feedbackMessage")?.value.trim();
+  if(!message||message.length>500){$("feedbackStatus").textContent="1〜500文字で書いてください。";return}
+  const status=$("feedbackStatus");status.textContent="送信中…";
+  try{
+   const user=await ensureNationalDb();
+   const {error}=await onlineDb.from("player_feedback").insert({message});
+   if(error)throw error;
+   closeModal();toast("ご意見を送信しました！ありがとう！");
+  }catch(e){status.textContent="送信できませんでした。インターネット接続と掲示板用SQLの設定を確認してください。"}
+ }],["閉じる",closeModal]]);
+}
+async function openFeedbackAdmin(){
+ modal("📬 ご意見管理（管理人専用）",`<p class="note">管理人用のSupabaseメールアドレスとパスワードでログインしてください。通常のプレイヤーIDや管理人用コードだけでは閲覧できません。</p>
+ <input id="feedbackAdminEmail" type="email" autocomplete="username" placeholder="管理人メールアドレス" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;margin:5px 0">
+ <input id="feedbackAdminPassword" type="password" autocomplete="current-password" placeholder="パスワード" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;margin:5px 0">
+ <p id="feedbackAdminStatus" class="note" aria-live="polite"></p><div id="feedbackAdminList"></div>`,[
+ ["ログインして読む",async()=>{
+  const status=$("feedbackAdminStatus");status.textContent="確認中…";
+  try{
+   await loadSupabaseSdk();
+   const db=feedbackAdminClient();
+   const email=$("feedbackAdminEmail").value.trim(),password=$("feedbackAdminPassword").value;
+   if(!email||!password){status.textContent="メールアドレスとパスワードを入力してください。";return}
+   const {error:authError}=await db.auth.signInWithPassword({email,password});
+   if(authError)throw authError;
+   const {data:rows,error}=await db.from("player_feedback").select("id,message,created_at").order("created_at",{ascending:false}).limit(100);
+   if(error)throw error;
+   status.textContent=`管理人用のご意見：${rows.length}件（新しい順・最大100件）`;
+   $("feedbackAdminList").innerHTML=rows.length?rows.map(r=>`<div style="border:1px solid #8ca7b8;border-radius:9px;padding:10px;margin:8px 0;overflow-wrap:anywhere"><small>${feedbackSafeText(new Date(r.created_at).toLocaleString("ja-JP"))}</small><p style="white-space:pre-wrap">${feedbackSafeText(r.message)}</p></div>`).join(""):"まだ投稿はありません。";
+   $("feedbackAdminPassword").value="";
+  }catch(e){status.textContent="閲覧できません。管理人アカウント・SQL設定を確認してください。";$("feedbackAdminList").replaceChildren()}
+ }],["閉じる",closeModal]]);
+}
+$("feedbackBtn").onclick=openFeedbackForm;
+$("feedbackAdminBtn").onclick=openFeedbackAdmin;
+
 function renderSelect(){const d=data();$("playerNameTop").textContent=`👤 ${playerName(d)}`;$("progressText").textContent=`👤 ${playerName(d)} ／ 🪙 所持コイン：${compactMoney(d.coins)}枚 ／ 💎 所持ジェム：${compactMoney(d.gems)}個 ／ ${versusRankInfo().name}（${versusRankInfo().points}pt） ／ 到達ステージ ${d.unlocked} ／ 星 ${starsTotal()} / 150`;const el=$("stages");el.replaceChildren();for(let n=1;n<=50;n++){const b=document.createElement("button");b.disabled=n>d.unlocked;b.innerHTML=`${n}<br><small>${d.stars[n-1]>0?"★".repeat(d.stars[n-1])+"☆".repeat(3-d.stars[n-1]):n===d.unlocked?"挑戦可能":"🔒"}</small>`;b.onclick=()=>startStage(n);el.appendChild(b)}}
 function renderSkins(){const total=starsTotal(),el=$("skins");el.replaceChildren();$("skinInfo").textContent=`星 ${total} / 150 ・ 全${SKINS.length}種類 ・ 5個ごとに解放 ・ 現在のダメージ ${skinPower().damage} ・ 発射ボール ${skinPower().balls}個`;SKINS.forEach(([name,color],i)=>{const need=i*5,b=document.createElement("button");b.disabled=total<need;b.innerHTML=`<span class="skinball" style="background:${color};color:${color}"></span>${name}<br><small>${total<need?`星 ${need} 個で解放`:data().skin===i?`使用中・攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`:`攻撃${SKIN_POWER[i][0]}・${SKIN_POWER[i][1]}球`}</small>`;b.onclick=()=>{data().skin=i;data().activeCoinSkin=-1;data().activeGemSkin=-1;persist();renderSkins()};el.appendChild(b)});
  const coins=$('coinSkins');coins.replaceChildren();
