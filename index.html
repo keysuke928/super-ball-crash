@@ -89,6 +89,9 @@ body.touch-mode #ipadShootBtn{display:block;width:100%;margin:0 0 10px}
 }
 body.touch-mode button{touch-action:manipulation}
 body.touch-mode #board,body.touch-mode #versusBoard,body.touch-mode #versusAimBoard{touch-action:none}
+/* ボール一覧をスクロールしても右上から閉じられる */
+#skinsScreen .skins-sticky-close{position:sticky;top:8px;z-index:100;display:flex;justify-content:flex-end;height:0;overflow:visible}
+#skinsScreen .skins-sticky-close button{min-height:44px;padding:9px 16px;border:2px solid #9bd8ff;border-radius:12px;background:#162c50;color:#fff;font-weight:700;box-shadow:0 3px 14px #0009;cursor:pointer;touch-action:manipulation}
 </style><style id="my-rank-highlight">
 /* 自分の順位をすべてのランキングで目立たせる */
 tr.my-ranking-row{background:rgba(255,205,55,.25)!important;outline:2px solid #ffd24c;outline-offset:-2px;font-weight:900;color:#fff8d5;}
@@ -112,7 +115,7 @@ tr.my-ranking-row td:first-child{border-left:5px solid #ffd24c;}
 <section id="rankTitlesScreen" class="panel hidden"><h2>👑 称号一覧</h2><p class="note">対決ポイントで獲得できる称号です。各称号に初めて昇格したときだけ1000コインを獲得できます。</p><p id="rankTitlesCurrent" class="center"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>必要ポイント</th><th>称号</th></tr></thead><tbody id="rankTitlesRows"></tbody></table></div><div class="actions"><button data-open="online" type="button">ルーム画面に戻る</button></div></section>
 <section id="rankingScreen" class="panel hidden"><h2>🏆 ミニゲームランキング TOP 100</h2><p class="note">このブラウザに保存されたミニゲームの記録です。ほかのパソコンの記録とは共有されません。</p><p id="rankingMyRank" class="note"></p><p id="rankingSummary"></p><div style="max-height:530px;overflow:auto"><table style="width:100%;border-collapse:collapse;text-align:left"><thead><tr><th>順位</th><th>プレイヤー</th><th>耐えた回数</th><th>記録日時</th></tr></thead><tbody id="rankingRows"></tbody></table></div><div class="actions"><button data-open="rankingHub">戻る</button></div></section>
 <section id="playScreen" class="hidden"><div id="gameArea"><canvas id="board" width="480" height="680" aria-label="ゲーム盤"></canvas><aside class="panel"><button id="ipadShootBtn" type="button">🚀 発射！</button><h2 id="stageTitle"></h2><div class="stats" id="stats"></div><div class="actions"><button id="saveBtn">手動セーブ</button><button id="returnBallsBtn" disabled>ボールを回収</button><button id="pauseBtn">ポーズ</button></div></aside></div></section>
-<section id="skinsScreen" class="panel hidden"><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
+<section id="skinsScreen" class="panel hidden"><div class="skins-sticky-close"><button type="button" data-open="select" aria-label="ボールの見た目を閉じる">✕ 閉じる</button></div><h2>ボールの見た目</h2><p id="skinInfo"></p><h3>⭐ 星で解放できるボール</h3><div class="skins" id="skins"></div><h3>🪙 コインで買えるボール</h3><p class="note">各ボールの「✨ 特殊能力」を確認できます。購入すると、このセーブデータでいつでも使用できます。</p><div class="skins" id="coinSkins"></div><h3>💎 ジェムで買えるボール</h3><p class="note">ジェムで購入すると、このセーブデータでいつでも装備できます。</p><div class="skins" id="gemSkins"></div><div class="actions"><button data-open="select">戻る</button></div></section>
 <section id="settingsScreen" class="panel hidden"><h2>設定</h2>
 <label><input type="checkbox" id="guideSetting"> 発射ガイド線を表示</label>
 <label>背景の明るさ <select id="brightnessSetting"><option value="dark">暗い</option><option value="normal">普通</option><option value="bright">明るい</option></select></label>
@@ -267,7 +270,27 @@ const COIN_SKINS=[
  {name:"🧬 コピーボール",color:"#9ff0dc",kind:"copy",price:32000,damage:2,balls:6,desc:"最初に取ったアイテムの効果を1回だけ2倍にする"},
  {name:"🌠 スターボール",color:"#f9d1ff",kind:"star",price:45000,damage:4,balls:5,desc:"7回衝突すると次の命中ダメージが2倍"},
  {name:"🐉 ドラゴンボール",color:"#e44e6c",kind:"dragon",price:60000,damage:5,balls:5,desc:"10回衝突するたび周囲の敵に2ダメージ"}
-];
+,
+{name:"🍀 クローバー",color:"#80df82",kind:"clover",price:65000,damage:4,balls:5,desc:"命中5回ごとにコイン+3"},
+{name:"🪨 クォーツ",color:"#c3e6ed",kind:"quartz",price:73500,damage:4,balls:5,desc:"壁反射3回ごとに攻撃力+1"},
+{name:"🌋 ボルケーノ",color:"#ff704e",kind:"volcano",price:82000,damage:4,balls:5,desc:"壁反射6回ごとに敵全体へ1ダメージ"},
+{name:"🌀 サイクロン",color:"#9bdbff",kind:"cyclone",price:90500,damage:4,balls:5,desc:"壁反射ごとに速度+2%"},
+{name:"🍯 ハニー",color:"#f8cb6b",kind:"honey",price:99000,damage:4,balls:5,desc:"命中時にモンスターを1.5秒停止"},
+{name:"🧲 マグネット",color:"#f16d8c",kind:"magnet",price:107500,damage:5,balls:5,desc:"壁反射4回ごとに一番近い敵へ1ダメージ"},
+{name:"🧊 フロスト",color:"#9cecff",kind:"frost",price:116000,damage:5,balls:5,desc:"命中4回ごとにモンスター全体を2秒停止"},
+{name:"🌿 ヴァイン",color:"#79d6a3",kind:"vine",price:124500,damage:5,balls:6,desc:"命中3回ごとに周囲の敵へ1ダメージ"},
+{name:"🔮 オラクル",color:"#bba1ff",kind:"oracle",price:133000,damage:5,balls:6,desc:"命中6回ごとに攻撃力+2"},
+{name:"💠 ターコイズ",color:"#70e9d9",kind:"turquoise",price:141500,damage:5,balls:6,desc:"壁反射5回ごとに球の速度+15%"},
+{name:"🪐 サターン",color:"#c3a6ff",kind:"saturn",price:150000,damage:6,balls:6,desc:"壁反射8回ごとに球を1個追加"},
+{name:"🦋 バタフライ",color:"#e6a9ee",kind:"butterfly",price:158500,damage:6,balls:6,desc:"命中7回ごとにコイン+15"},
+{name:"🌾 ハーベスト",color:"#e6c46d",kind:"harvest",price:167000,damage:6,balls:6,desc:"ブロック破壊時10%でコイン+5"},
+{name:"🌪️ ダスト",color:"#d5bb9c",kind:"dust",price:175500,damage:6,balls:6,desc:"命中4回ごとに周囲のブロックへ1ダメージ"},
+{name:"🔔 ベル",color:"#f3e48d",kind:"bell",price:184000,damage:6,balls:7,desc:"壁反射10回ごとに全敵へ2ダメージ"},
+{name:"🍓 ベリー",color:"#f16a90",kind:"berry",price:192500,damage:7,balls:7,desc:"命中2回ごとにダメージ+0.5"},
+{name:"🌱 スプラウト",color:"#92dc78",kind:"sprout",price:201000,damage:7,balls:7,desc:"命中6回ごとに追加ボール1個"},
+{name:"🦀 クラブ",color:"#ff987c",kind:"crab",price:209500,damage:7,balls:7,desc:"壁反射5回ごとに進行方向を左右反転"},
+{name:"🧿 アイリス",color:"#7ba2ef",kind:"iris",price:218000,damage:7,balls:7,desc:"命中8回ごとに全ブロックへ1ダメージ"},
+{name:"☄️ コメット",color:"#f6a565",kind:"cometnew",price:226500,damage:7,balls:7,desc:"壁反射7回ごとに次の命中ダメージ2倍"}];
 const GEM_SKINS=[
  {name:"✨ エンジェルボール",color:"#fff5ba",kind:"angel",price:600,damage:2,balls:4,desc:"1回の発射につき、最初に当たった敵に追加3ダメージ"},
  {name:"🌊 ウォーターボール",color:"#5acaff",kind:"water",price:900,damage:2,balls:5,desc:"命中地点の左右のブロックに1ダメージ"},
@@ -292,7 +315,27 @@ const GEM_SKINS=[
  {name:"🌪️ リバースボール",color:"#b1baff",kind:"manual_reverse",price:5600,damage:5,balls:6,desc:"手動：スペースキーで飛行中のすべての球を反転"},
  {name:"⏪ タイムリワインドボール",color:"#8de8ff",kind:"manual_rewind",price:6400,damage:5,balls:6,desc:"手動：スペースキーで飛行中の球の位置と速度を約3秒前に戻す（ダメージは戻らない）"},
  {name:"🎃 パンプキンボール",color:"#ff912f",kind:"manual_pumpkin",price:5000,damage:4,balls:2,desc:"手動：スペースキーで飛行中の各ボールの周囲8マスのブロックを破壊（1発射につき1回）"}
-];
+,
+{name:"💎 ルミナ",color:"#a3f8ff",kind:"lumina",price:7000,damage:5,balls:6,desc:"命中3回ごとに全敵へ2ダメージ"},
+{name:"🕊️ セラフ",color:"#f9e9b5",kind:"seraph",price:7750,damage:5,balls:6,desc:"壁反射4回ごとに追加ボール1個"},
+{name:"🌌 アストラ",color:"#a7a3ff",kind:"astra",price:8500,damage:5,balls:6,desc:"命中5回ごとに全ブロックへ1ダメージ"},
+{name:"🪷 ロータス",color:"#f7b1da",kind:"lotus",price:9250,damage:5,balls:6,desc:"命中4回ごとに攻撃力+2"},
+{name:"⚛️ ニュートロン",color:"#9cf2df",kind:"neutron",price:10000,damage:5,balls:6,desc:"壁反射3回ごとに近くの敵へ3ダメージ"},
+{name:"🛸 UFO",color:"#b6ef90",kind:"ufo",price:10750,damage:6,balls:6,desc:"壁反射6回ごとに球の速度+25%"},
+{name:"🌈 オパール",color:"#e8adff",kind:"opal",price:11500,damage:6,balls:6,desc:"ブロック破壊時25%でジェム+1"},
+{name:"🦄 ユニコーン",color:"#f5c3ff",kind:"unicorn",price:12250,damage:6,balls:7,desc:"命中3回ごとにコイン+20"},
+{name:"🌟 セレスティア",color:"#ffe4a2",kind:"celestia",price:13000,damage:6,balls:7,desc:"壁反射9回ごとに全敵へ4ダメージ"},
+{name:"🪄 ミラージュ",color:"#afc8ff",kind:"mirage",price:13750,damage:6,balls:7,desc:"命中6回ごとに追加ボール2個"},
+{name:"❇️ ノヴァ",color:"#f7bb79",kind:"novagem",price:14500,damage:7,balls:7,desc:"命中7回ごとに全ブロックへ2ダメージ"},
+{name:"🪸 コーラル",color:"#ff978e",kind:"coral",price:15250,damage:7,balls:7,desc:"壁反射5回ごとに攻撃力+2"},
+{name:"🌕 ルナ",color:"#d9d7ff",kind:"luna",price:16000,damage:7,balls:7,desc:"命中8回ごとに全敵へ5ダメージ"},
+{name:"💫 ステラ",color:"#f8df91",kind:"stella",price:16750,damage:7,balls:7,desc:"壁反射4回ごとにコイン+10"},
+{name:"🪽 ウィング",color:"#f4f2d8",kind:"wing",price:17500,damage:7,balls:8,desc:"命中4回ごとに速度+20%"},
+{name:"🌠 クエーサー",color:"#a5dbff",kind:"quasar",price:18250,damage:8,balls:8,desc:"命中9回ごとに全ブロックへ3ダメージ"},
+{name:"🔱 トライデント",color:"#83e5ec",kind:"trident",price:19000,damage:8,balls:8,desc:"壁反射8回ごとに追加ボール3個"},
+{name:"🪞 スペクトル",color:"#c1b7f4",kind:"spectrum",price:19750,damage:8,balls:8,desc:"命中5回ごとに次の命中ダメージ3倍"},
+{name:"🧬 エーテル",color:"#a4f4cc",kind:"ether",price:20500,damage:8,balls:8,desc:"壁反射10回ごとに全敵へ6ダメージ"},
+{name:"👑 インペリアル",color:"#f6d27c",kind:"imperial",price:21250,damage:8,balls:8,desc:"命中10回ごとに全敵へ8ダメージ"}];
 // 以前の20ステージ版のセーブデータもそのまま利用できるようにする。
 store.slots=store.slots.slice(0,10).map(d=>{if(!d)return null;d.stars=Array.from({length:50},(_,i)=>Math.max(0,Math.min(3,Number(d.stars?.[i])||0)));d.unlocked=Math.max(1,Math.min(50,Number(d.unlocked)||1));d.checkpoint=Math.max(1,Math.min(50,Number(d.checkpoint)||1));d.coins=Math.max(0,Number(d.coins)||0);d.coinSkins=Array.isArray(d.coinSkins)?d.coinSkins.filter(i=>Number.isInteger(i)&&i>=0&&i<COIN_SKINS.length):[];d.activeCoinSkin=Number.isInteger(d.activeCoinSkin)&&d.coinSkins.includes(d.activeCoinSkin)?d.activeCoinSkin:-1;d.gems=Math.max(0,Number(d.gems)||0);// サクラボール削除前の購入インデックスを一度だけ移行する。
 if(!d.sakuraGemRemoved){
@@ -1693,7 +1736,7 @@ function specialHit(b,target,isMonster){
  if(b.special==='thunder'){const nearby=isMonster?game.monsters:game.monsters;const other=nearby.find(m=>m!==target&&m.alive&&Math.abs(m.c-target.c)<=1.5&&Math.abs(m.row-target.row)<=1);if(other){other.hp--;if(other.hp<=0)defeatMonster(other)}}
  if(b.special==='split'&&!b.splitDone){b.splitDone=true;const speed=Math.hypot(b.vx,b.vy)||330,ang=Math.atan2(b.vy,b.vx);for(const delta of [-.38,.38]){if(game.balls.length+game.pending.length>=100)break;game.pending.push({...b,x:b.x,y:b.y,vx:Math.cos(ang+delta)*speed,vy:Math.sin(ang+delta)*speed,splitDone:true,used:new Set(b.used)})}}
 }
-function specialWall(b){
+function specialWall(b){newShopWall(b);
  if(b.special==='moon'){b.vx*=1.035;b.vy*=1.035}
  if(b.special==='mirror'&&Math.random()<.01&&game.balls.length+game.pending.length<100){game.pending.push({...b,vx:-b.vx,vy:b.vy,used:new Set(b.used),drillHits:{...b.drillHits}})}
 }
@@ -1720,6 +1763,38 @@ function playCollisionSound(kind){
   osc.start(now);osc.stop(now+duration+.005);
  }catch(e){}
 }
+
+const NEW_SHOP_EFFECTS={"clover": ["hit", 5, "coins", 3], "quartz": ["wall", 3, "damage", 1], "volcano": ["wall", 6, "enemies", 1], "cyclone": ["wall", 1, "speed", 1.02], "honey": ["hit", 1, "freeze", 1.5], "magnet": ["wall", 4, "nearest", 1], "frost": ["hit", 4, "freezeall", 2], "vine": ["hit", 3, "nearby", 1], "oracle": ["hit", 6, "damage", 2], "turquoise": ["wall", 5, "speed", 1.15], "saturn": ["wall", 8, "spawn", 1], "butterfly": ["hit", 7, "coins", 15], "harvest": ["destroy", 10, "coins", 5], "dust": ["hit", 4, "blocksnear", 1], "bell": ["wall", 10, "enemies", 2], "berry": ["hit", 2, "damage", 0.5], "sprout": ["hit", 6, "spawn", 1], "crab": ["wall", 5, "flip", 1], "iris": ["hit", 8, "blocks", 1], "cometnew": ["wall", 7, "boost", 2], "lumina": ["hit", 3, "enemies", 2], "seraph": ["wall", 4, "spawn", 1], "astra": ["hit", 5, "blocks", 1], "lotus": ["hit", 4, "damage", 2], "neutron": ["wall", 3, "nearest", 3], "ufo": ["wall", 6, "speed", 1.25], "opal": ["destroy", 25, "gems", 1], "unicorn": ["hit", 3, "coins", 20], "celestia": ["wall", 9, "enemies", 4], "mirage": ["hit", 6, "spawn", 2], "novagem": ["hit", 7, "blocks", 2], "coral": ["wall", 5, "damage", 2], "luna": ["hit", 8, "enemies", 5], "stella": ["wall", 4, "coins", 10], "wing": ["hit", 4, "speed", 1.2], "quasar": ["hit", 9, "blocks", 3], "trident": ["wall", 8, "spawn", 3], "spectrum": ["hit", 5, "boost", 3], "ether": ["wall", 10, "enemies", 6], "imperial": ["hit", 10, "enemies", 8]};
+function newShopEffect(b,event,target){
+ const rule=NEW_SHOP_EFFECTS[b.special];if(!rule||rule[0]!==event||!game)return;
+ b.shopCounters??={};const count=b.shopCounters[event]=(b.shopCounters[event]||0)+1;
+ const [_,period,action,value]=rule;
+ if(event==="destroy"&&Math.random()*100>=period)return;
+ if(event!=="destroy"&&count%period!==0)return;
+ const g=game;
+ const hurt=(obj,amount)=>{if(!obj.alive)return;obj.hp-=amount;if(obj.hp<=0){if(g.monsters.includes(obj))defeatMonster(obj);else destroy(obj)}};
+ const spawn=(n)=>{g.pending??=[];for(let i=0;i<n&&g.pending.length<35;i++){
+  const a=Math.atan2(b.vy,b.vx)+(i-(n-1)/2)*.3+.25;
+  g.pending.push({...b,x:b.x,y:b.y,vx:Math.cos(a)*330,vy:Math.sin(a)*330,shopCounters:{...b.shopCounters},used:new Set(),history:[]});
+ }};
+ if(action==="coins"){data().coins+=value;persist()}
+ if(action==="gems"){data().gems+=value;persist()}
+ if(action==="damage")b.damage+=value;
+ if(action==="speed"){b.vx*=value;b.vy*=value}
+ if(action==="flip")b.vx=-b.vx;
+ if(action==="spawn")spawn(value);
+ if(action==="boost")b.shopBoost=value;
+ if(action==="enemies")for(const m of [...g.monsters])hurt(m,value);
+ if(action==="blocks")for(const obj of [...g.blocks])if(obj.alive&&obj.type!=="iron"&&obj.type!=="coin")hurt(obj,value);
+ if(action==="nearest"){const m=g.monsters.filter(o=>o.alive).sort((a,z)=>Math.hypot(X0+a.c*CW-b.x,Y0+a.row*CH-b.y)-Math.hypot(X0+z.c*CW-b.x,Y0+z.row*CH-b.y))[0];if(m)hurt(m,value)}
+ if(action==="nearby")for(const m of [...g.monsters])if(Math.hypot(X0+(m.c+.5)*CW-b.x,Y0+(m.row+.5)*CH-b.y)<100)hurt(m,value);
+ if(action==="blocksnear")for(const obj of [...g.blocks])if(obj.alive&&obj.type!=="iron"&&obj.type!=="coin"&&Math.hypot(X0+(obj.c+.5)*CW-b.x,Y0+(obj.row+.5)*CH-b.y)<90)hurt(obj,value);
+ if(action==="freeze"&&target&&g.monsters.includes(target))target.frozen=Math.max(target.frozen||0,value);
+ if(action==="freezeall")for(const m of g.monsters)if(m.alive)m.frozen=Math.max(m.frozen||0,value);
+}
+function newShopHit(b,target){newShopEffect(b,"hit",target);if(b.shopBoost){b.damage*=b.shopBoost;b.shopBoost=0}}
+function newShopWall(b){newShopEffect(b,"wall")}
+function newShopDestroy(b,target){newShopEffect(b,"destroy",target)}
 function step(dt){const g=game;if(!g||paused||screen!=="play")return;if(g.cleared)return;
 // 発射前の待機中も左右移動モンスターは動き続ける。
  for(const m of g.monsters)if(m.alive&&(m.type==="moving"||((m.type==="movingBoss"||(m.type==="boss"&&!g.custom&&(g.n===25||g.n===50)))))){
@@ -1756,12 +1831,12 @@ for(const b of g.balls){
  const slices=Math.min(96,Math.max(1,Math.ceil(Math.hypot(b.vx,b.vy)*dt/2)));for(let k=0;k<slices;k++){b.x+=b.vx*dt/slices;b.y+=b.vy*dt/slices;if(b.special==='planet'){if(b.x+b.r<0)b.x=W+b.r;else if(b.x-b.r>W)b.x=-b.r}else{if(b.x-b.r<0){b.x=b.r;b.vx=Math.abs(b.vx);playCollisionSound("wall");specialWall(b)}if(b.x+b.r>W){b.x=W-b.r;b.vx=-Math.abs(b.vx);playCollisionSound("wall");specialWall(b)}}if(b.y-b.r<0){b.y=b.r;b.vy=Math.abs(b.vy);playCollisionSound("wall");specialWall(b)}
 if(b.y-b.r>H)break;
 let monsterHit=false;for(const m of g.monsters){if(!m.alive)continue;const x=X0+m.c*CW+2,y=Y0+m.row*CH+2;
- if(circleRect(b,x,y,CW-4,CH-4)){reflect(b,x,y,CW-4,CH-4);playCollisionSound("monster");m.hp-=b.damage*(b.starBoost?2:1);specialHit(b,m,true);if(m.hp<=0){defeatMonster(m);if(b.special==='gold'&&Math.random()<.2){data().coins+=20;persist();toast('ゴールド！ +20コイン')}}monsterHit=true;break}}
+ if(circleRect(b,x,y,CW-4,CH-4)){reflect(b,x,y,CW-4,CH-4);playCollisionSound("monster");m.hp-=b.damage*(b.starBoost?2:1);specialHit(b,m,true);newShopHit(b,m);if(m.hp<=0){defeatMonster(m);if(b.special==='gold'&&Math.random()<.2){data().coins+=20;persist();toast('ゴールド！ +20コイン')}}monsterHit=true;break}}
 if(monsterHit)continue;
 for(const block of g.blocks){if(!block.alive)continue;const x=X0+block.c*CW+2,y=Y0+block.row*CH+2;if(circleRect(b,x,y,CW-4,CH-4)){playCollisionSound("block");if(b.special!=="pierce"&&!(b.special==="ghost"&&block.type==="iron")||b.special==="pierce"&&block.type==="iron")reflect(b,x,y,CW-4,CH-4);if(block.type==="iron"&&b.special==='diamond'){
   const near=g.monsters.filter(m=>m.alive).sort((a,z)=>Math.abs(a.c-block.c)+Math.abs(a.row-block.row)-Math.abs(z.c-block.c)-Math.abs(z.row-block.row))[0];
   if(near){near.hp-=2;if(near.hp<=0)defeatMonster(near)}
- }if(block.type!=="iron"){const wasAlive=block.alive;let dmg=b.damage*(b.starBoost?2:1);if(b.special==='drill'){b.drillHits??={};const id=block.id;b.drillHits[id]=(b.drillHits[id]||0)+1;if(b.drillHits[id]>1)dmg+=1}if(block.type==="glass")dmg*=2;else if(block.type==="armor")dmg=Math.max(.5,dmg*.5);block.hp-=dmg;specialHit(b,block,false);if(block.hp<=0){destroy(block);if(wasAlive&&b.special==='crash'){const below=g.blocks.find(o=>o.alive&&o.type!=='iron'&&o.c===block.c&&o.row===block.row+1);if(below){below.hp-=2;if(below.hp<=0)destroy(below)}}if(b.special==="lucky"&&Math.random()<.1){data().coins+=10;persist();toast("ラッキー！ +10コイン")}}}break}}
+ }if(block.type!=="iron"){const wasAlive=block.alive;let dmg=b.damage*(b.starBoost?2:1);if(b.special==='drill'){b.drillHits??={};const id=block.id;b.drillHits[id]=(b.drillHits[id]||0)+1;if(b.drillHits[id]>1)dmg+=1}if(block.type==="glass")dmg*=2;else if(block.type==="armor")dmg=Math.max(.5,dmg*.5);block.hp-=dmg;specialHit(b,block,false);newShopHit(b,block);if(block.hp<=0){destroy(block);newShopDestroy(b,block);if(wasAlive&&b.special==='crash'){const below=g.blocks.find(o=>o.alive&&o.type!=='iron'&&o.c===block.c&&o.row===block.row+1);if(below){below.hp-=2;if(below.hp<=0)destroy(below)}}if(b.special==="lucky"&&Math.random()<.1){data().coins+=10;persist();toast("ラッキー！ +10コイン")}}}break}}
 for(const item of g.items){if(item.collected)continue;const x=X0+(item.c+.5)*CW,y=Y0+(item.row+.5)*CH;
  if((b.x-x)**2+(b.y-y)**2<=(b.r+11)**2)handleItem(b,item);
  else if(PUSH_DIRECTIONS[item.type]&&b.pushContacts)b.pushContacts.delete(item.id);
