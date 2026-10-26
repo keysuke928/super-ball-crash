@@ -342,8 +342,53 @@ function setVersusMaze(room,round){
   if(protectedCells.has(`${y},${x}`)||(y===4&&x===4))continue;
   if(rand()<.22)maze[y][x]=maze[y][x]==="#"?".":"#";
  }
- // ラウンドの偶奇で必ず異なるマス。ランダム抽選では変更しない。
- maze[4][4]=(Number(round||1)%2===0)?"#":".";
+ // 孤立した空きマスが生まれないよう、全空きマスを通路で連結する。
+ // 壁を壊す数が最小になる経路を掘り、両スタート地点も必ず接続する。
+ maze[0][0]=".";maze[9][7]=".";
+ const dirs=[[1,0],[-1,0],[0,1],[0,-1]];
+ function reachable(){
+  const seen=Array.from({length:10},()=>Array(8).fill(false));
+  const queue=[[0,0]];seen[0][0]=true;
+  for(let i=0;i<queue.length;i++){
+   const [x,y]=queue[i];
+   for(const [dx,dy] of dirs){const nx=x+dx,ny=y+dy;
+    if(nx>=0&&nx<8&&ny>=0&&ny<10&&!seen[ny][nx]&&maze[ny][nx]==="."){
+     seen[ny][nx]=true;queue.push([nx,ny]);
+    }
+   }
+  }
+  return seen;
+ }
+ for(let pass=0;pass<80;pass++){
+  const seen=reachable();
+  let target=null;
+  for(let y=0;y<10&&!target;y++)for(let x=0;x<8;x++){
+   if(maze[y][x]==="."&&!seen[y][x]){target=[x,y];break;}
+  }
+  if(!target)break;
+  // 0-1 BFS: 通路の移動コスト0、壁を壊す移動コスト1。
+  const dist=Array.from({length:10},()=>Array(8).fill(Infinity));
+  const prev=Array.from({length:10},()=>Array(8).fill(null));
+  const pending=[];
+  for(let y=0;y<10;y++)for(let x=0;x<8;x++)if(seen[y][x]){dist[y][x]=0;pending.push([x,y]);}
+  while(pending.length){
+   let best=0;for(let i=1;i<pending.length;i++)if(dist[pending[i][1]][pending[i][0]]<dist[pending[best][1]][pending[best][0]])best=i;
+   const [x,y]=pending.splice(best,1)[0];
+   for(const [dx,dy] of dirs){const nx=x+dx,ny=y+dy;
+    if(nx<0||nx>=8||ny<0||ny>=10)continue;
+    const cost=maze[ny][nx]==="#"?1:0;
+    if(dist[y][x]+cost<dist[ny][nx]){
+     dist[ny][nx]=dist[y][x]+cost;prev[ny][nx]=[x,y];pending.push([nx,ny]);
+    }
+   }
+  }
+  let [x,y]=target;
+  while(!seen[y][x]){
+   maze[y][x]=".";
+   const parent=prev[y][x];if(!parent)break;
+   [x,y]=parent;
+  }
+ }
  VERSUS_MAZE=maze.map(row=>row.join(""));
 }
 function clearVersusMaze(){versusMazeKey="";VERSUS_MAZE=VERSUS_MAZE_BASE.slice();}
